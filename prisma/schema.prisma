@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,4 +5,35 @@ generator client {
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  user_id         String   @id @default(uuid())
+  first_name      String
+  last_name       String
+  email           String   @unique
+  password_hashed String
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now())
+  gifs            Gif[]
+}
+
+model Gif {
+  gif_id     String   @id @default(uuid())
+  name       String
+  public_url String
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [user_id])
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+  tags       Tag[]
+}
+
+model Tag {
+  tag_id     String   @id @default(uuid())
+  name       String
+  gif_id     String
+  gif        Gif      @relation(fields: [gif_id], references: [gif_id])
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
 }
