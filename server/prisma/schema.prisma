@@ -23,9 +23,9 @@ model Gif {
   name       String
   public_url String
   user_id    String
-  user       User     @relation(fields: [user_id], references: [user_id])
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
+  user       User     @relation(fields: [user_id], references: [user_id])
   tags       Tag[]
 }
 
@@ -33,7 +33,7 @@ model Tag {
   tag_id     String   @id @default(uuid())
   name       String
   gif_id     String
-  gif        Gif      @relation(fields: [gif_id], references: [gif_id])
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
+  gif        Gif      @relation(fields: [gif_id], references: [gif_id])
 }
