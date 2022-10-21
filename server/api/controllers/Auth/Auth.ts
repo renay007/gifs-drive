@@ -92,24 +92,76 @@ export default (router: Router) => {
       },
     });
 
+    const { hashed_password, ...userInfo } = user;
+
     return res.status(200).send({
       success: true,
       message: "Successfully signed up user",
-      data: user,
+      data: userInfo,
     });
   });
 
-  /**
-   * Sign in
-   */
   router.post("/api/signin", async (req, res) => {
+    const { body } = req;
+    if (_isEmpty(body))
+      return res
+        .status(400)
+        .send(new HttpError(HttpErrorCode.BAD_REQUEST).toJson());
+
+    const required: (keyof SigninInput)[] = ["email", "password"];
+    let validation = validateBody(required, body);
+
+    if (!validation.isValid)
+      return res
+        .status(400)
+        .send(
+          new ValidationError(
+            ValidationErrorCode.MISSING_REQUIRED_INFO,
+            validation.message
+          ).toJson()
+        );
+
+    validation = checkForNonEmptyString(required, body);
+    if (!validation.isValid)
+      return res
+        .status(400)
+        .send(
+          new ValidationError(
+            ValidationErrorCode.EMPTY_STRING,
+            validation.message
+          ).toJson()
+        );
+
+    const { email, password } = body as SigninInput;
+
+    if (!validator.isEmail(email || ""))
+      return res
+        .status(400)
+        .send(new ValidationError(ValidationErrorCode.INVALID_EMAIL).toJson());
+
     const prisma = new PrismaClient();
-    const { body }: { body: SigninInput } = req.body;
-    const user = await prisma.user.findUnique({
-      where: {
-        email: body.email,
-      },
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user)
+      return res
+        .status(400)
+        .send(new AuthError(AuthErrorCode.USER_NOT_FOUND).toJson());
+
+    const { hashed_password: hashedPassword, ...userInfo } = user;
+    const isPasswordValid = await helper.isValidPassword(
+      password,
+      hashedPassword
+    );
+
+    if (!isPasswordValid)
+      return res
+        .status(400)
+        .send(new AuthError(AuthErrorCode.WRONG_PASSWORD).toJson());
+
+    return res.status(200).send({
+      success: true,
+      message: "Successfully signed in user",
+      data: userInfo,
     });
-    if (user) return;
   });
 };

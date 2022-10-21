@@ -49,7 +49,7 @@ export class HttpError extends CustomError {
 export class ValidationErrorCode {
   public static MISSING_REQUIRED_INFO = {
     code: "missing-required-info",
-    message: "Invalid request. Please try again!",
+    message: "Invalid request. Please try again.",
   };
   public static EMPTY_STRING = {
     code: "empty-string",
@@ -101,6 +101,10 @@ export class AuthErrorCode {
   };
   public static USER_NOT_FOUND = {
     code: "user-not-found",
-    message: "Invalid user information",
+    message: "User not found. Please try again.",
+  };
+  public static WRONG_PASSWORD = {
+    code: "wrong-password",
+    message: "Wrong password. Please try again.",
   };
 }
