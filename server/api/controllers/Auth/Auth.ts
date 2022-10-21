@@ -96,7 +96,7 @@ export default (router: Router) => {
 
     return res.status(200).send({
       success: true,
-      message: "Successfully signed up user",
+      message: "Successfully signed up user.",
       data: userInfo,
     });
   });
@@ -160,7 +160,7 @@ export default (router: Router) => {
 
     return res.status(200).send({
       success: true,
-      message: "Successfully signed in user",
+      message: "Successfully signed in user.",
       data: userInfo,
     });
   });
