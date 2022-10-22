@@ -10,7 +10,9 @@ import {
   checkForNonEmptyString,
   emptyString,
   errorMessage,
+  forbidden,
   missingInfo,
+  notFound,
   success,
   validateBody,
 } from "../../utils";
@@ -31,7 +33,8 @@ export default (router: Router) => {
 
       return res.status(200).send(success(gifs, "Success retrieving gifs."));
     } catch (error) {
-      return res.status(400).send(errorMessage(error));
+      const { statusCode, ...rest } = errorMessage(error);
+      return res.status(statusCode || 400).send(rest);
     } finally {
       if (prisma) await prisma.$disconnect();
     }
@@ -42,18 +45,18 @@ export default (router: Router) => {
     let prisma;
     try {
       const { body } = req;
-      if (_isEmpty(body)) return res.status(400).send(badRequest());
+      if (_isEmpty(body)) throw badRequest();
 
       const required: (keyof GifInput)[] = ["name"];
       let validation = validateBody(required, body);
       let { isValid, message } = validation;
 
-      if (!isValid) return res.status(400).send(missingInfo(message));
+      if (!isValid) throw missingInfo(message);
 
       validation = checkForNonEmptyString(required, body);
       ({ isValid, message } = validation);
 
-      if (!isValid) return res.status(400).send(emptyString(message));
+      if (!isValid) throw emptyString(message);
 
       const { name }: GifInput = body;
       const date = new Date().toISOString();
@@ -70,21 +73,21 @@ export default (router: Router) => {
 
       return res.status(200).send(success(gif, "Successfully created gif."));
     } catch (error) {
-      return res.status(400).send(errorMessage(error));
+      const { statusCode, ...rest } = errorMessage(error);
+      return res.status(statusCode || 400).send(rest);
     } finally {
       if (prisma) await prisma.$disconnect();
     }
   });
 
   router.put("/api/gifs/:gif_id", async (req, res) => {
+    const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
     let prisma;
     try {
       const { params, body } = req;
       const { gif_id: gifId } = params;
 
-      if (!gifId) return res.status(400).send(badRequest());
-
-      if (_isEmpty(body)) return res.status(400).send(badRequest());
+      if (!gifId || _isEmpty(body)) throw badRequest();
 
       const { name, tags }: GifInput = body;
 
@@ -92,13 +95,12 @@ export default (router: Router) => {
       let validation = validateBody(required, body);
       let { isValid, message } = validation;
 
-      if (!isValid) return res.status(400).send(missingInfo(message));
+      if (!isValid) throw missingInfo(message);
 
       message = "name should be a non-empty string";
-      if (!name) return res.status(400).send(emptyString(message));
+      if (!name) throw emptyString(message);
 
       prisma = new PrismaClient({ ...config.prisma });
-      const transactions = [];
 
       const result = await prisma.$transaction(async (tx) => {
         const where: Prisma.GifWhereUniqueInput = {};
@@ -107,6 +109,12 @@ export default (router: Router) => {
 
         where["gif_id"] = gifId;
         data["tags"] = { set: [] };
+
+        const resource = await tx.gif.findUnique({ where });
+
+        if (!resource) throw notFound();
+
+        if (resource?.user_id !== userId) throw forbidden();
 
         await tx.gif.update({ where, data });
 
@@ -120,25 +128,29 @@ export default (router: Router) => {
       });
       return res.status(200).send(success(result, "Successfully updated gif."));
     } catch (error) {
-      return res.status(400).send(errorMessage(error));
+      const { statusCode, ...rest } = errorMessage(error);
+      return res.status(statusCode || 400).send(rest);
     } finally {
       if (prisma) await prisma.$disconnect();
     }
   });
 
   router.delete("/api/gifs/:gif_id", async (req, res) => {
+    const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
     let prisma;
     try {
       const { gif_id: gifId } = req.params;
 
-      if (!gifId) return res.status(400).send(badRequest());
+      if (!gifId) throw badRequest();
 
       prisma = new PrismaClient({ ...config.prisma });
+      const where: Prisma.GifWhereInput = {};
       await prisma.gif.delete({ where: { gif_id: gifId } });
 
       return res.status(200).send(success(null, "Successfully deleted gif."));
     } catch (error) {
-      return res.status(400).send(errorMessage(error));
+      const { statusCode, ...rest } = errorMessage(error);
+      return res.status(statusCode || 400).send(rest);
     } finally {
       if (prisma) await prisma.$disconnect();
     }

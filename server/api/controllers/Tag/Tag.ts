@@ -13,7 +13,8 @@ export default (router: Router) => {
 
       return res.status(200).send(success(tags, "Success retrieving tags."));
     } catch (error) {
-      return res.status(400).send(errorMessage(error));
+      const { statusCode, ...rest } = errorMessage(error);
+      return res.status(statusCode || 400).send(rest);
     } finally {
       if (prisma) await prisma.$disconnect();
     }

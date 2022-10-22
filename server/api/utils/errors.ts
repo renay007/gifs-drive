@@ -1,4 +1,5 @@
-type ErrorType = {
+export type ErrorType = {
+  statusCode?: number;
   success?: boolean;
   code: string;
   message: string;
@@ -7,10 +8,12 @@ type ErrorType = {
 export class CustomError extends Error {
   constructor(private error: ErrorType) {
     super(error.message);
+    (this as any).__proto__ = CustomError.prototype;
   }
 
   public toJson() {
     return {
+      statusCode: this.error.statusCode || 400,
       success: false,
       code: this.error.code,
       message: this.message,
@@ -25,6 +28,7 @@ export class ValidationError extends CustomError {
       code: "@validation/" + error.code,
       message: message || error.message,
     });
+    (this as any).__proto__ = ValidationError.prototype;
   }
 }
 
@@ -34,15 +38,18 @@ export class AuthError extends CustomError {
       code: "@auth/" + error.code,
       message: message || error.message,
     });
+    (this as any).__proto__ = AuthError.prototype;
   }
 }
 
 export class HttpError extends CustomError {
   constructor(error: ErrorType, message?: string) {
     super({
+      statusCode: error.statusCode,
       code: "@http/" + error.code,
       message: message || error.message,
     });
+    (this as any).__proto__ = HttpError.prototype;
   }
 }
 
@@ -68,22 +75,27 @@ export class ValidationErrorCode {
 
 export class HttpErrorCode {
   public static BAD_REQUEST = {
+    statusCode: 400,
     code: "bad-request",
     message: "Bad Request",
   };
   public static UNAUTHORIZED = {
+    statusCode: 401,
     code: "unauthorized",
     message: "Unauthorized",
   };
   public static FORBIDDEN = {
+    statusCode: 403,
     code: "forbidden",
     message: "Forbidden",
   };
   public static NOT_FOUND = {
+    statusCode: 404,
     code: "not-found",
     message: "Not Found",
   };
   public static INTERNAL_ERROR = {
+    statusCode: 500,
     code: "internal-error",
     message: "An internal error has occurred.",
   };

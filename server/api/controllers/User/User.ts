@@ -11,18 +11,19 @@ export default (router: Router) => {
     try {
       const { user_id: userId } = req.params;
 
-      if (!userId || userId !== "me") return res.status(400).send(badRequest());
+      if (!userId || userId !== "me") throw badRequest();
 
       prisma = new PrismaClient({ ...config.prisma });
       const user = await prisma.user.findUnique({ where: { user_id: ID } });
 
-      if (!user) return res.status(400).send(userNotFound());
+      if (!user) throw userNotFound();
 
       const { hashed_password, ...rest } = user;
 
       return res.status(200).send(success(rest, "Success retrieving user."));
     } catch (error) {
-      return res.status(400).send(errorMessage(error));
+      const { statusCode, ...rest } = errorMessage(error);
+      return res.status(statusCode || 400).send(rest);
     } finally {
       if (prisma) await prisma.$disconnect();
     }

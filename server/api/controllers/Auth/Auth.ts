@@ -29,7 +29,7 @@ export default (router: Router) => {
     let prisma;
     try {
       const { body } = req;
-      if (_isEmpty(body)) return res.status(400).send(badRequest());
+      if (_isEmpty(body)) throw badRequest();
 
       const required: (keyof SignupInput)[] = [
         "first_name",
@@ -40,12 +40,12 @@ export default (router: Router) => {
       let validation = validateBody(required, body);
       let { isValid, message } = validation;
 
-      if (!isValid) return res.status(400).send(missingInfo(message));
+      if (!isValid) throw missingInfo(message);
 
       validation = checkForNonEmptyString(required, body);
       ({ isValid, message } = validation);
 
-      if (!isValid) return res.status(400).send(emptyString(message));
+      if (!isValid) throw emptyString(message);
 
       const {
         first_name: firstName,
@@ -54,14 +54,14 @@ export default (router: Router) => {
         password,
       }: SignupInput = body;
 
-      if (!isEmail(email)) return res.status(400).send(invalidEmail());
+      if (!isEmail(email)) throw invalidEmail();
 
-      if (!isStrong(password)) return res.status(400).send(weakPassword());
+      if (!isStrong(password)) throw weakPassword();
 
       prisma = new PrismaClient({ ...config.prisma });
       let user = await prisma.user.findUnique({ where: { email } });
 
-      if (user) return res.status(400).send(emailExists());
+      if (user) throw emailExists();
 
       const hashedPassword = await encryptPassword(password);
       const date = new Date().toISOString();
@@ -80,7 +80,8 @@ export default (router: Router) => {
       const { hashed_password, ...rest } = user;
       return res.status(200).send(success(rest, "Successfully registered."));
     } catch (error) {
-      return res.status(400).send(errorMessage(error));
+      const { statusCode, ...rest } = errorMessage(error);
+      return res.status(statusCode || 400).send(rest);
     } finally {
       if (prisma) await prisma.$disconnect();
     }
@@ -90,37 +91,38 @@ export default (router: Router) => {
     let prisma;
     try {
       const { body } = req;
-      if (_isEmpty(body)) return res.status(400).send(badRequest());
+      if (_isEmpty(body)) throw badRequest();
 
       const required: (keyof SigninInput)[] = ["email", "password"];
       let validation = validateBody(required, body);
       let { isValid, message } = validation;
 
-      if (!isValid) return res.status(400).send(missingInfo(message));
+      if (!isValid) throw missingInfo(message);
 
       validation = checkForNonEmptyString(required, body);
       ({ isValid, message } = validation);
 
-      if (!isValid) return res.status(400).send(emptyString(message));
+      if (!isValid) throw emptyString(message);
 
       const { email, password }: SigninInput = body;
 
-      if (!isEmail(email)) return res.status(400).send(invalidEmail());
+      if (!isEmail(email)) throw invalidEmail();
 
       prisma = new PrismaClient({ ...config.prisma });
       const user = await prisma.user.findUnique({ where: { email } });
 
-      if (!user) return res.status(400).send(userNotFound());
+      if (!user) throw userNotFound();
 
       const valid = await isValidPassword(password, user.hashed_password);
 
-      if (!valid) return res.status(400).send(wrongPassword());
+      if (!valid) throw wrongPassword();
 
       const { hashed_password: hashedPassword, ...rest } = user;
 
       return res.status(200).send(success(rest, "Successfully logged in."));
     } catch (error) {
-      return res.status(400).send(errorMessage(error));
+      const { statusCode, ...rest } = errorMessage(error);
+      return res.status(statusCode || 400).send(rest);
     } finally {
       if (prisma) await prisma.$disconnect();
     }
