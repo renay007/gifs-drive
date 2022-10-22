@@ -76,7 +76,7 @@ export default (router: Router) => {
     }
   });
 
-  router.patch("/api/gifs/:gif_id", async (req, res) => {
+  router.put("/api/gifs/:gif_id", async (req, res) => {
     let prisma;
     try {
       const { params, body } = req;
@@ -88,7 +88,13 @@ export default (router: Router) => {
 
       const { name, tags }: GifInput = body;
 
-      const message = "name should be a non-empty string";
+      const required: (keyof GifInput)[] = ["name", "tags"];
+      let validation = validateBody(required, body);
+      let { isValid, message } = validation;
+
+      if (!isValid) return res.status(400).send(missingInfo(message));
+
+      message = "name should be a non-empty string";
       if (!name) return res.status(400).send(emptyString(message));
 
       prisma = new PrismaClient({ ...config.prisma });

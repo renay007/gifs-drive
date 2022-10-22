@@ -6,4 +6,5 @@ import _User from "./User/User";
 
 export const AuthCtrl = _Auth;
 export const GifCtrl = _Gif;
+export const TagCtrl = _Tag;
 export const UserCtrl = _User;
