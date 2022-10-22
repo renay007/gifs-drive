@@ -3,165 +3,126 @@ import { isEmpty as _isEmpty } from "lodash";
 import { PrismaClient } from "@prisma/client";
 import validator from "validator";
 
+import { encryptPassword, isValidPassword } from "./helper";
 import type { SigninInput, SignupInput } from "./types";
-import * as helper from "./helper";
 
-import { checkForNonEmptyString, validateBody } from "../../utils";
 import {
-  AuthError,
-  AuthErrorCode,
-  HttpError,
-  HttpErrorCode,
-  ValidationError,
-  ValidationErrorCode,
-} from "../../utils/errors";
+  badRequest,
+  checkForNonEmptyString,
+  emailExists,
+  emptyString,
+  errorMessage,
+  invalidEmail,
+  missingInfo,
+  success,
+  userNotFound,
+  validateBody,
+  weakPassword,
+  wrongPassword,
+} from "../../utils";
+import * as config from "../../../config";
+
+const { isEmail, isStrongPassword: isStrong } = validator;
 
 export default (router: Router) => {
   router.post("/api/signup", async (req, res) => {
-    const { body } = req;
-    if (_isEmpty(body))
-      return res
-        .status(400)
-        .send(new HttpError(HttpErrorCode.BAD_REQUEST).toJson());
+    let prisma;
+    try {
+      const { body } = req;
+      if (_isEmpty(body)) return res.status(400).send(badRequest());
 
-    const required: (keyof SignupInput)[] = [
-      "first_name",
-      "last_name",
-      "email",
-      "password",
-    ];
-    let validation = validateBody(required, body);
+      const required: (keyof SignupInput)[] = [
+        "first_name",
+        "last_name",
+        "email",
+        "password",
+      ];
+      let validation = validateBody(required, body);
+      let { isValid, message } = validation;
 
-    if (!validation.isValid)
-      return res
-        .status(400)
-        .send(
-          new ValidationError(
-            ValidationErrorCode.MISSING_REQUIRED_INFO,
-            validation.message
-          ).toJson()
-        );
+      if (!isValid) return res.status(400).send(missingInfo(message));
 
-    validation = checkForNonEmptyString(required, body);
-    if (!validation.isValid)
-      return res
-        .status(400)
-        .send(
-          new ValidationError(
-            ValidationErrorCode.EMPTY_STRING,
-            validation.message
-          ).toJson()
-        );
+      validation = checkForNonEmptyString(required, body);
+      ({ isValid, message } = validation);
 
-    const {
-      first_name: firstName,
-      last_name: lastName,
-      email,
-      password,
-    } = body as SignupInput;
+      if (!isValid) return res.status(400).send(emptyString(message));
 
-    if (!validator.isEmail(email || ""))
-      return res
-        .status(400)
-        .send(new ValidationError(ValidationErrorCode.INVALID_EMAIL).toJson());
-
-    if (!validator.isStrongPassword(password || ""))
-      return res
-        .status(400)
-        .send(new ValidationError(ValidationErrorCode.WEAK_PASSWORD).toJson());
-
-    const prisma = new PrismaClient();
-    let user = await prisma.user.findUnique({ where: { email } });
-
-    if (user)
-      return res
-        .status(400)
-        .send(new AuthError(AuthErrorCode.EMAIL_ALREADY_EXISTS).toJson());
-
-    const hashedPassword = await helper.encryptPassword(password);
-    const date = new Date().toISOString();
-
-    user = await prisma.user.create({
-      data: {
+      const {
         first_name: firstName,
         last_name: lastName,
-        email: email,
-        hashed_password: hashedPassword,
-        created_at: date,
-        updated_at: date,
-      },
-    });
+        email,
+        password,
+      }: SignupInput = body;
 
-    const { hashed_password, ...userInfo } = user;
+      if (!isEmail(email)) return res.status(400).send(invalidEmail());
 
-    return res.status(200).send({
-      success: true,
-      message: "Successfully signed up user.",
-      data: userInfo,
-    });
+      if (!isStrong(password)) return res.status(400).send(weakPassword());
+
+      prisma = new PrismaClient({ ...config.prisma });
+      let user = await prisma.user.findUnique({ where: { email } });
+
+      if (user) return res.status(400).send(emailExists());
+
+      const hashedPassword = await encryptPassword(password);
+      const date = new Date().toISOString();
+
+      user = await prisma.user.create({
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          email: email,
+          hashed_password: hashedPassword,
+          created_at: date,
+          updated_at: date,
+        },
+      });
+
+      const { hashed_password, ...rest } = user;
+      return res.status(200).send(success(rest, "Successfully registered."));
+    } catch (error) {
+      return res.status(400).send(errorMessage(error));
+    } finally {
+      if (prisma) await prisma.$disconnect();
+    }
   });
 
   router.post("/api/signin", async (req, res) => {
-    const { body } = req;
-    if (_isEmpty(body))
-      return res
-        .status(400)
-        .send(new HttpError(HttpErrorCode.BAD_REQUEST).toJson());
+    let prisma;
+    try {
+      const { body } = req;
+      if (_isEmpty(body)) return res.status(400).send(badRequest());
 
-    const required: (keyof SigninInput)[] = ["email", "password"];
-    let validation = validateBody(required, body);
+      const required: (keyof SigninInput)[] = ["email", "password"];
+      let validation = validateBody(required, body);
+      let { isValid, message } = validation;
 
-    if (!validation.isValid)
-      return res
-        .status(400)
-        .send(
-          new ValidationError(
-            ValidationErrorCode.MISSING_REQUIRED_INFO,
-            validation.message
-          ).toJson()
-        );
+      if (!isValid) return res.status(400).send(missingInfo(message));
 
-    validation = checkForNonEmptyString(required, body);
-    if (!validation.isValid)
-      return res
-        .status(400)
-        .send(
-          new ValidationError(
-            ValidationErrorCode.EMPTY_STRING,
-            validation.message
-          ).toJson()
-        );
+      validation = checkForNonEmptyString(required, body);
+      ({ isValid, message } = validation);
 
-    const { email, password } = body as SigninInput;
+      if (!isValid) return res.status(400).send(emptyString(message));
 
-    if (!validator.isEmail(email || ""))
-      return res
-        .status(400)
-        .send(new ValidationError(ValidationErrorCode.INVALID_EMAIL).toJson());
+      const { email, password }: SigninInput = body;
 
-    const prisma = new PrismaClient();
-    const user = await prisma.user.findUnique({ where: { email } });
+      if (!isEmail(email)) return res.status(400).send(invalidEmail());
 
-    if (!user)
-      return res
-        .status(400)
-        .send(new AuthError(AuthErrorCode.USER_NOT_FOUND).toJson());
+      prisma = new PrismaClient({ ...config.prisma });
+      const user = await prisma.user.findUnique({ where: { email } });
 
-    const { hashed_password: hashedPassword, ...userInfo } = user;
-    const isPasswordValid = await helper.isValidPassword(
-      password,
-      hashedPassword
-    );
+      if (!user) return res.status(400).send(userNotFound());
 
-    if (!isPasswordValid)
-      return res
-        .status(400)
-        .send(new AuthError(AuthErrorCode.WRONG_PASSWORD).toJson());
+      const valid = await isValidPassword(password, user.hashed_password);
 
-    return res.status(200).send({
-      success: true,
-      message: "Successfully signed in user.",
-      data: userInfo,
-    });
+      if (!valid) return res.status(400).send(wrongPassword());
+
+      const { hashed_password: hashedPassword, ...rest } = user;
+
+      return res.status(200).send(success(rest, "Successfully logged in."));
+    } catch (error) {
+      return res.status(400).send(errorMessage(error));
+    } finally {
+      if (prisma) await prisma.$disconnect();
+    }
   });
 };

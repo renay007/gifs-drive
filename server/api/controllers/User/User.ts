@@ -1,33 +1,30 @@
 import type { Router } from "express";
 import { PrismaClient } from "@prisma/client";
 
-import { AuthErrorCode, HttpError, HttpErrorCode } from "../../utils/errors";
+import { badRequest, errorMessage, success, userNotFound } from "../../utils";
+import * as config from "../../../config";
 
 export default (router: Router) => {
   router.get("/api/users/:user_id", async (req, res) => {
-    const { user_id: userId } = req.params;
+    const ID = "972646b0-d56c-409e-9404-783dbcf9c618";
+    let prisma;
+    try {
+      const { user_id: userId } = req.params;
 
-    if (!userId || userId !== "me")
-      return res
-        .status(400)
-        .send(new HttpError(HttpErrorCode.BAD_REQUEST).toJson());
+      if (!userId || userId !== "me") return res.status(400).send(badRequest());
 
-    const prisma = new PrismaClient();
-    const user = await prisma.user.findUnique({
-      where: { user_id: "972646b0-d56c-409e-9404-783dbcf9c618" },
-    });
+      prisma = new PrismaClient({ ...config.prisma });
+      const user = await prisma.user.findUnique({ where: { user_id: ID } });
 
-    if (!user)
-      return res
-        .status(400)
-        .send(new HttpError(AuthErrorCode.USER_NOT_FOUND).toJson());
+      if (!user) return res.status(400).send(userNotFound());
 
-    const { hashed_password, ...userInfo } = user;
+      const { hashed_password, ...rest } = user;
 
-    return res.status(200).send({
-      success: true,
-      message: "Successfully retrieved user info.",
-      data: userInfo,
-    });
+      return res.status(200).send(success(rest, "Success retrieving user."));
+    } catch (error) {
+      return res.status(400).send(errorMessage(error));
+    } finally {
+      if (prisma) await prisma.$disconnect();
+    }
   });
 };

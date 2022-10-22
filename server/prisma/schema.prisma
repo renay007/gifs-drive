@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
 }
 
 datasource db {
@@ -21,7 +22,7 @@ model User {
 model Gif {
   gif_id     String   @id @default(uuid())
   name       String
-  public_url String
+  public_url String?
   user_id    String
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
@@ -31,9 +32,8 @@ model Gif {
 
 model Tag {
   tag_id     String   @id @default(uuid())
-  name       String
-  gif_id     String
+  name       String   @unique
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
-  gif        Gif      @relation(fields: [gif_id], references: [gif_id])
+  gifs       Gif[]
 }

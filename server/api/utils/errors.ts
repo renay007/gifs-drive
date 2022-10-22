@@ -49,7 +49,7 @@ export class HttpError extends CustomError {
 export class ValidationErrorCode {
   public static MISSING_REQUIRED_INFO = {
     code: "missing-required-info",
-    message: "Invalid request. Please try again.",
+    message: "Please provide all required info.",
   };
   public static EMPTY_STRING = {
     code: "empty-string",
@@ -83,6 +83,10 @@ export class HttpErrorCode {
     code: "not-found",
     message: "Not Found",
   };
+  public static INTERNAL_ERROR = {
+    code: "internal-error",
+    message: "An internal error has occurred.",
+  };
 }
 
 export class AuthErrorCode {
@@ -106,5 +110,9 @@ export class AuthErrorCode {
   public static WRONG_PASSWORD = {
     code: "wrong-password",
     message: "Wrong password. Please try again.",
+  };
+  public static INTERNAL_ERROR = {
+    code: "internal-error",
+    message: "An internal error has occurred.",
   };
 }
