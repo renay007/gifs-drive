@@ -1,9 +1,16 @@
+import { randomUUID } from "crypto";
 import type { Router } from "express";
-import { isEmpty as _isEmpty } from "lodash";
+import { FileArray, UploadedFile } from "express-fileupload";
+import { isEmpty as _isEmpty, rest } from "lodash";
 import { Prisma, PrismaClient } from "@prisma/client";
 
+import {
+  createSecureUrl,
+  getUploadPath,
+  processTags,
+  uploadFile,
+} from "./helper";
 import type { FileInput } from "./types";
-import * as helper from "./helper";
 
 import {
   badRequest,
@@ -16,10 +23,6 @@ import {
   success,
 } from "../../utils";
 import * as config from "../../../config";
-import { FileArray, UploadedFile } from "express-fileupload";
-import { uploadFile } from "./helper";
-import { randomUUID } from "crypto";
-import { send } from "process";
 
 export default (router: Router) => {
   router.get("/cdn/private/view/files/:file_id_hash", async (req, res) => {
@@ -42,12 +45,14 @@ export default (router: Router) => {
       if (!resource) throw notFound();
       if (resource?.user_id !== userId) throw forbidden();
 
-      const path = helper.getUploadPath({
+      const path = getUploadPath({
         userId,
         resourceId: fileId,
         file: { mimetype },
       });
-      console.log("path", path);
+
+      res.setHeader("Content-Type", resource.mimetype);
+      res.setHeader("Content-Disposition", `filename=${resource.name}`);
       return res.sendFile(path);
     } catch (error) {
       return res.status(404).send("No such file.");
@@ -96,7 +101,7 @@ export default (router: Router) => {
           file,
           secret: process.env.SECURE_URL_KEY || "",
         };
-        const secureUrl = helper.createSecureUrl(urlParams);
+        const secureUrl = createSecureUrl(urlParams);
 
         const host = `${req.protocol}://${req.hostname}`;
         const path = "cdn/private/view/files";
@@ -159,7 +164,7 @@ export default (router: Router) => {
           data["tags"] = { set: [] };
           await tx.file.update({ where, data });
           data["tags"] = {};
-          helper.processTags(data, tags);
+          processTags(data, tags);
         }
 
         if (name) {
