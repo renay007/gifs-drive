@@ -5,6 +5,7 @@ import { isEmpty as _isEmpty, rest } from "lodash";
 import { Prisma, PrismaClient } from "@prisma/client";
 
 import {
+  createPublicUrl,
   createSecureUrl,
   getUploadPath,
   processTags,
@@ -122,6 +123,85 @@ export default (router: Router) => {
       });
 
       return res.status(200).send(success(response, "Success uploading file."));
+    } catch (error) {
+      const { statusCode, ...rest } = errorMessage(error);
+      return res.status(statusCode || 400).send(rest);
+    } finally {
+      if (prisma) await prisma.$disconnect();
+    }
+  });
+
+  router.post("/api/files/:file_id/link", async (req, res) => {
+    const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
+    let prisma;
+    try {
+      const { params } = req;
+      const { file_id: fileId } = params;
+
+      if (!fileId) throw badRequest();
+
+      prisma = new PrismaClient({ ...config.prisma });
+      const where: Prisma.FileWhereUniqueInput = { file_id: fileId };
+      const resource = await prisma.file.findUnique({ where });
+
+      if (!resource) throw notFound();
+      if (resource?.user_id !== userId) throw forbidden();
+
+      const urlParams = {
+        resourceId: resource.file_id,
+        file: { mimetype: resource.mimetype },
+        secret: process.env.PUBLIC_URL_KEY || "",
+      };
+      const publicUrl = createPublicUrl(urlParams);
+      const host = `${req.protocol}://${req.hostname}`;
+      const path = "cdn/public/view/files";
+
+      const data: Prisma.FileUpdateInput = {};
+      const include: Prisma.FileInclude = {};
+
+      data["public_url"] = `${host}/${path}/${publicUrl}`;
+      include["tags"] = true;
+
+      const response = await prisma.file.update({ where, data, include });
+
+      return res
+        .status(200)
+        .send(success(response, "Success creating public link."));
+    } catch (error) {
+      const { statusCode, ...rest } = errorMessage(error);
+      return res.status(statusCode || 400).send(rest);
+    } finally {
+      if (prisma) await prisma.$disconnect();
+    }
+  });
+
+  router.delete("/api/files/:file_id/link", async (req, res) => {
+    const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
+    let prisma;
+    try {
+      const { params } = req;
+      const { file_id: fileId } = params;
+
+      if (!fileId) throw badRequest();
+
+      prisma = new PrismaClient({ ...config.prisma });
+      const where: Prisma.FileWhereUniqueInput = { file_id: fileId };
+      const resource = await prisma.file.findUnique({ where });
+
+      if (!resource) throw notFound();
+      if (resource?.user_id !== userId) throw forbidden();
+
+      const data: Prisma.FileUpdateInput = {};
+      const include: Prisma.FileInclude = {};
+
+      data["public_url"] = null;
+      include["tags"] = true;
+
+      const response = await prisma.file.update({ where, data, include });
+
+      return res
+        .status(200)
+        .send(success(response, "Success deleting public link."));
     } catch (error) {
       const { statusCode, ...rest } = errorMessage(error);
       return res.status(statusCode || 400).send(rest);
