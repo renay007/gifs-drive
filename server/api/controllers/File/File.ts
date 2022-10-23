@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import type { Router } from "express";
 import { FileArray, UploadedFile } from "express-fileupload";
 import { isEmpty as _isEmpty, rest } from "lodash";
+import path from "path";
 import { Prisma, PrismaClient } from "@prisma/client";
 
 import {
@@ -20,6 +21,7 @@ import {
   errorMessage,
   forbidden,
   getFullUrl,
+  invalidFileFormat,
   notFound,
   noUpdate,
   success,
@@ -37,6 +39,8 @@ export default (router: Router) => {
       const { file_id_hash: fileIdHash } = params;
 
       if (!fileIdHash) throw badRequest();
+
+      if (fileIdHash.length !== 172) throw badRequest();
 
       const decrypted = decrypt(fileIdHash, process.env.SECURE_URL_KEY || "");
       const [fileId, _] = decrypted.split(":");
@@ -72,6 +76,8 @@ export default (router: Router) => {
       const { file_id_hash: fileIdHash } = params;
 
       if (!fileIdHash) throw badRequest();
+
+      if (fileIdHash.length !== 172) throw badRequest();
 
       const decrypted = decrypt(fileIdHash, process.env.PUBLIC_URL_KEY || "");
       const [fileId, _] = decrypted.split(":");
@@ -129,6 +135,13 @@ export default (router: Router) => {
 
       const file = files.file as UploadedFile;
       const { name, size, mimetype, md5 } = file;
+
+      const ext = path.extname(name);
+      const allowed = [".gif"];
+
+      const message = `Invalid file format. Use one of: ${allowed}`;
+
+      if (!allowed.includes(ext)) throw invalidFileFormat(message);
 
       prisma = new PrismaClient({ ...config.prisma });
       const response = await prisma.$transaction(async (tx) => {

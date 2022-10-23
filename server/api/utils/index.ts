@@ -108,6 +108,10 @@ export const emailExists = (message = "") => {
   return new AuthError(AuthErrorCode.EMAIL_ALREADY_EXISTS, message);
 };
 
+export const invalidFileFormat = (message = "") => {
+  return new ValidationError(ValidationErrorCode.INVALID_FILE_FORMAT, message);
+};
+
 export const invalidEmail = (message = "") => {
   return new ValidationError(ValidationErrorCode.INVALID_EMAIL, message);
 };

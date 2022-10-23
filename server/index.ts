@@ -10,6 +10,7 @@ const port = process.env.PORT || 5000;
 const app = express();
 const router = express.Router();
 
+app.use(express.static(path.resolve("..", "public")));
 app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

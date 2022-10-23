@@ -71,6 +71,10 @@ export class ValidationErrorCode {
     message:
       "The password provided is too weak. Please provide a stronger password.",
   };
+  public static INVALID_FILE_FORMAT = {
+    code: "invalid-file-format",
+    message: "Please provide a valid file format.",
+  };
 }
 
 export class HttpErrorCode {
