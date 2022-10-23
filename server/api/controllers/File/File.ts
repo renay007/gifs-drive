@@ -24,75 +24,55 @@ import { randomUUID } from "crypto";
 import { send } from "process";
 
 export default (router: Router) => {
-  router.get("/api/private/view/files/:file_id", async (req, res) => {
-    const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
-    let prisma;
-    try {
-      prisma = new PrismaClient({ ...config.prisma });
+  // router.get("/cdn/private/view/files/:file_id", async (req, res) => {
+  //   const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
+  //   let prisma;
+  //   try {
+  //     prisma = new PrismaClient({ ...config.prisma });
 
-      const where: Prisma.FileWhereUniqueInput = {};
-      const where: Prisma.FileWhereInput = { user_id: userId };
-      const include: Prisma.FileInclude = { tags: true };
-      where["file_id"] = fileId;
+  //     const where: Prisma.FileWhereUniqueInput = {};
+  //     const where: Prisma.FileWhereInput = { user_id: userId };
+  //     const include: Prisma.FileInclude = { tags: true };
+  //     where["file_id"] = fileId;
 
-      const resource = await prisma.file.findUnique({ where });
-      if (!resource) throw notFound();
-      if (resource?.user_id !== userId) throw forbidden();
+  //     const resource = await prisma.file.findUnique({ where });
+  //     if (!resource) throw notFound();
+  //     if (resource?.user_id !== userId) throw forbidden();
 
-      return send.file();
-      const files = await prisma.file.findMany({ where, include });
+  //     return send.file();
+  //     const files = await prisma.file.findMany({ where, include });
 
-      const result = await prisma.$transaction(async (tx) => {
-        const data: Prisma.FileUpdateInput = {};
-        const include: Prisma.FileInclude = {};
+  //     const result = await prisma.$transaction(async (tx) => {
+  //       const data: Prisma.FileUpdateInput = {};
+  //       const include: Prisma.FileInclude = {};
 
-        include["tags"] = true;
+  //       include["tags"] = true;
 
-        if (tags && tags !== null && tags !== undefined) {
-          hasUpdate = true;
-          data["tags"] = { set: [] };
-          await tx.file.update({ where, data });
-          data["tags"] = {};
-          helper.processTags(data, tags);
-        }
+  //       if (tags && tags !== null && tags !== undefined) {
+  //         hasUpdate = true;
+  //         data["tags"] = { set: [] };
+  //         await tx.file.update({ where, data });
+  //         data["tags"] = {};
+  //         helper.processTags(data, tags);
+  //       }
 
-        if (name) {
-          hasUpdate = true;
-          data["name"] = name;
-          data["updated_at"] = new Date().toISOString();
-        }
-        if (!hasUpdate) return resource;
-        else return await tx.file.update({ where, data, include });
-      });
+  //       if (name) {
+  //         hasUpdate = true;
+  //         data["name"] = name;
+  //         data["updated_at"] = new Date().toISOString();
+  //       }
+  //       if (!hasUpdate) return resource;
+  //       else return await tx.file.update({ where, data, include });
+  //     });
 
-      return res.status(200).send(success(files, "Success retrieving files."));
-    } catch (error) {
-      const { statusCode, ...rest } = errorMessage(error);
-      return res.status(statusCode || 400).send(rest);
-    } finally {
-      if (prisma) await prisma.$disconnect();
-    }
-  });
-  router.get("/api/public/view/files/:file_id", async (req, res) => {
-    const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
-    let prisma;
-
-    try {
-      prisma = new PrismaClient({ ...config.prisma });
-
-      const where: Prisma.FileWhereInput = { user_id: userId };
-      const include: Prisma.FileInclude = { tags: true };
-
-      const files = await prisma.file.findMany({ where, include });
-
-      return res.status(200).send(success(files, "Success retrieving files."));
-    } catch (error) {
-      const { statusCode, ...rest } = errorMessage(error);
-      return res.status(statusCode || 400).send(rest);
-    } finally {
-      if (prisma) await prisma.$disconnect();
-    }
-  });
+  //     return res.status(200).send(success(files, "Success retrieving files."));
+  //   } catch (error) {
+  //     const { statusCode, ...rest } = errorMessage(error);
+  //     return res.status(statusCode || 400).send(rest);
+  //   } finally {
+  //     if (prisma) await prisma.$disconnect();
+  //   }
+  // });
   router.get("/api/files", async (req, res) => {
     const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
     let prisma;
@@ -117,7 +97,6 @@ export default (router: Router) => {
   router.post("/api/files/upload", async (req, res) => {
     const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
     let prisma;
-    console.log("req.files", req.files);
     try {
       const files = req.files as FileArray;
       if (_isEmpty(files)) throw badRequest();
@@ -129,18 +108,22 @@ export default (router: Router) => {
       const response = await prisma.$transaction(async (tx) => {
         const date = new Date().toISOString();
         const resourceId = randomUUID();
-        const secureUrl = helper.createSecuredUrl(
+        const urlParams = {
           resourceId,
           file,
-          "process.env.PRIVATE_RESOURCE_SECRET"
-        );
+          secret: process.env.SECURE_URL_KEY || "",
+        };
+        const secureUrl = helper.createSecureUrl(urlParams);
+
+        const host = `${req.protocol}://${req.hostname}`;
+        const path = "cdn/private/view/files";
         const data: Prisma.FileCreateInput = {
           file_id: resourceId,
           name,
           size,
           mimetype,
           md5,
-          secure_url: secureUrl,
+          secure_url: `${host}/${path}/${secureUrl}`,
           user: { connect: { user_id: userId } },
           created_at: date,
           updated_at: date,

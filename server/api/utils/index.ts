@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 import {
   AuthError,
   AuthErrorCode,
@@ -41,6 +43,34 @@ export const checkForNonEmptyString = (
     }
   }
   return { isValid: true };
+};
+
+export const encrypt = (message: string, secret: string): string => {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(secret), iv);
+  let encrypted = cipher.update(message);
+
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+  const final = iv.toString("hex") + ":" + encrypted.toString("hex");
+  return Buffer.from(final).toString("base64");
+};
+
+export const decrypt = (message: string, secret: string) => {
+  const data = Buffer.from(message, "base64").toString("ascii");
+  const messageParts = data.split(":");
+  const iv = Buffer.from(messageParts.shift() || "", "hex");
+  const encryptedMessage = Buffer.from(messageParts.join(":"), "hex");
+  let decipher = crypto.createDecipheriv(
+    "aes-256-cbc",
+    Buffer.from(secret),
+    iv
+  );
+  let decrypted = decipher.update(encryptedMessage);
+
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
+
+  return decrypted.toString();
 };
 
 export const errorMessage = (error: unknown): ErrorType => {
