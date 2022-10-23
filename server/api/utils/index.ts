@@ -1,4 +1,6 @@
 import crypto from "crypto";
+import { Request } from "express";
+import url from "url";
 
 import {
   AuthError,
@@ -43,6 +45,14 @@ export const checkForNonEmptyString = (
     }
   }
   return { isValid: true };
+};
+
+export const getFullUrl = (req: Request) => {
+  return url.format({
+    protocol: req.protocol,
+    host: req.hostname,
+    pathname: req.originalUrl,
+  });
 };
 
 export const encrypt = (message: string, secret: string): string => {
