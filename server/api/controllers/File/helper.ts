@@ -77,7 +77,9 @@ const uploadFile = async ({
   try {
     await moveTo(path);
   } catch (error) {
-    throw new Error("Failed to upload file. Please try again");
+    let message = "";
+    if (error instanceof Error) message = error.message;
+    throw new Error(message || "Failed to upload file. Please try again");
   }
 };
 
