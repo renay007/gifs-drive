@@ -96,6 +96,14 @@ export const forbidden = (message = "") => {
   return new HttpError(HttpErrorCode.FORBIDDEN, message);
 };
 
+export const noUpdate = (data: unknown, message = "") => {
+  return {
+    success: true,
+    message: message || "Nothing to update!",
+    data: data || null,
+  };
+};
+
 export const success = (data: unknown, message = "") => {
   return {
     success: true,

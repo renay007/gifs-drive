@@ -16,12 +16,16 @@ model User {
   hashed_password String
   created_at      DateTime @default(now())
   updated_at      DateTime @default(now())
-  gifs            Gif[]
+  files           File[]
 }
 
-model Gif {
-  gif_id     String   @id @default(uuid())
+model File {
+  file_id    String   @id @default(uuid())
   name       String
+  size       Int
+  mimetype   String
+  md5        String
+  secure_url String
   public_url String?
   user_id    String
   created_at DateTime @default(now())
@@ -35,5 +39,5 @@ model Tag {
   name       String   @unique
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
-  gifs       Gif[]
+  files      File[]
 }

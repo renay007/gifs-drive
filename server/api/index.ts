@@ -1,7 +1,7 @@
 import type { Router } from "express";
 import {
   AuthCtrl,
-  GifCtrl,
+  FileCtrl,
   TagCtrl,
   UploadCtrl,
   UserCtrl,
@@ -9,7 +9,7 @@ import {
 
 export default (router: Router) => {
   AuthCtrl(router);
-  GifCtrl(router);
+  FileCtrl(router);
   TagCtrl(router);
   UploadCtrl(router);
   UserCtrl(router);
