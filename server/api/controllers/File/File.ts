@@ -129,7 +129,7 @@ export default (router: Router) => {
           updated_at: date,
         };
         const response = await tx.file.create({ data });
-        await uploadFile(resourceId, file);
+        await uploadFile({ userId, resourceId, file });
         return response;
       });
 
@@ -204,7 +204,6 @@ export default (router: Router) => {
     try {
       const { file_id: fileId } = req.params;
 
-      console.log("fileId", fileId);
       if (!fileId) throw badRequest();
 
       prisma = new PrismaClient({ ...config.prisma });

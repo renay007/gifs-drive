@@ -1,9 +1,10 @@
 import { Prisma, Tag } from "@prisma/client";
 import { UploadedFile } from "express-fileupload";
-import { encrypt, decrypt } from "./../../utils";
-import crypto from "crypto";
 import mime from "mime-types";
 import path from "path";
+import util from "util";
+
+import { encrypt } from "./../../utils";
 
 const processTags = (data: Prisma.FileUpdateInput, tags: Tag[]) => {
   if (tags.length === 0) return;
@@ -21,16 +22,21 @@ const processTags = (data: Prisma.FileUpdateInput, tags: Tag[]) => {
   }
 };
 
-const getUploadPath = (
-  resourceId: string,
-  file: { mimetype: string }
-): string => {
+const getUploadPath = ({
+  userId,
+  resourceId,
+  file,
+}: {
+  userId: string;
+  resourceId: string;
+  file: { mimetype: string };
+}): string => {
   const dir = path.resolve("..", "private", "uploads");
   const { mimetype } = file;
   const extension = mime.extension(mimetype) || "";
   const type = mime.types[extension].split("/")[0];
   const fileName = `${resourceId}.${extension}`;
-  return `${dir}/${type}/${fileName}`;
+  return `${dir}/${userId}/${type}/${fileName}`;
 };
 
 const createSecureUrl = ({
@@ -57,12 +63,28 @@ const createPublicUrl = ({
   return encrypt(`${resourceId}:${file.mimetype}`, secret);
 };
 
-const uploadFile = async (
-  resourceId: string,
-  file: UploadedFile
-): Promise<void> => {
-  const path = getUploadPath(resourceId, file);
-  throw new Error("Just for fun");
+const uploadFile = async ({
+  userId,
+  resourceId,
+  file,
+}: {
+  userId: string;
+  resourceId: string;
+  file: UploadedFile;
+}): Promise<void> => {
+  const path = getUploadPath({ userId, resourceId, file });
+  const moveTo = util.promisify(file.mv);
+  try {
+    await moveTo(path);
+  } catch (error) {
+    throw new Error("Failed to upload file. Please try again");
+  }
 };
 
-export { createSecureUrl, getUploadPath, processTags, uploadFile };
+export {
+  createPublicUrl,
+  createSecureUrl,
+  getUploadPath,
+  processTags,
+  uploadFile,
+};
