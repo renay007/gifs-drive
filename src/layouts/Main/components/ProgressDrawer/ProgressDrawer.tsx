@@ -14,7 +14,7 @@ const ProgressDrawer = (): JSX.Element => {
   };
 
   return (
-    <Box sx={{ position: "absolute", bottom: 15, right: 15 }}>
+    <Box sx={{ position: "fixed", bottom: 15, right: 15 }}>
       <Card sx={{ width: { xs: 350, md: 500 } }}>
         <ProgressHeader
           expand={expanded}

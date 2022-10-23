@@ -2,7 +2,6 @@ import * as React from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 
-
 import { Navbar, ProgressDrawer } from "./components";
 
 interface Props {
@@ -11,11 +10,16 @@ interface Props {
 
 const Main = ({ children }: Props): JSX.Element => {
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="sticky">
+    <Box>
+      <AppBar
+        sx={{
+          top: 0,
+        }}
+        position="sticky"
+      >
         <Navbar />
       </AppBar>
-      <main>{children}</main>
+      <Box marginBottom={6}>{children}</Box>
       <ProgressDrawer />
     </Box>
   );
