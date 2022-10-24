@@ -7,40 +7,37 @@ import CardMedia from "@mui/material/CardMedia";
 import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
 import Button from "@mui/material/Button";
-import LoadingButton from "@mui/lab/LoadingButton";
 import Chip from "@mui/material/Chip";
 
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
-import DeleteIcon from "@mui/icons-material/Delete";
-import TextField from "@mui/material/TextField";
-
-export interface Tag {
-  tag_id: string;
-  name: string;
-}
-
-export interface FileType {
-  file_id: string;
-  name: string;
-  secure_url: string;
-  tags: Tag[];
-}
+import { FileType, Tag } from "./types";
+import { DeleteDialog, UpdateDialog } from "./components";
+import Stack from "@mui/material/Stack";
 
 interface FileProps {
   file: FileType;
+  tags: Tag[];
+  onCreatePublicLink?: (file: FileType) => void;
+  onDeletePublicLink?: (file: FileType) => void;
   onFileDelete?: (file: FileType) => void;
-  onFileUpdate?: (file: FileType) => void;
+  onFileUpdate?: ({
+    file,
+    values,
+  }: {
+    file: FileType;
+    values: FileType;
+  }) => void;
 }
 
-const File = ({ file, onFileDelete, onFileUpdate }: FileProps): JSX.Element => {
+const File = ({
+  file,
+  tags,
+  onCreatePublicLink = () => {},
+  onDeletePublicLink = () => {},
+  onFileDelete = () => {},
+  onFileUpdate = () => {},
+}: FileProps): JSX.Element => {
   const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false);
-  const [loadingDeleteDialog, setLoadingDeleteDialog] = React.useState(false);
   const [openUpdateDialog, setOpenUpdateDialog] = React.useState(false);
-  const [loadingUpdateDialog, setLoadingUpdateDialog] = React.useState(false);
 
   const handleOpenDeleteDialog = () => {
     setOpenDeleteDialog(true);
@@ -48,21 +45,14 @@ const File = ({ file, onFileDelete, onFileUpdate }: FileProps): JSX.Element => {
 
   const handleCloseDeleteDialog = () => {
     setOpenDeleteDialog(false);
-    setLoadingDeleteDialog(false);
   };
 
   const handleDelete = async (file: FileType) => {
-    if (onFileDelete) {
-      try {
-        setLoadingDeleteDialog(true);
-        await onFileDelete(file);
-      } catch (error) {
-        // Push error to snack
-      } finally {
-        setLoadingDeleteDialog(false);
-      }
-    } else {
+    try {
+      await onFileDelete(file);
       setOpenDeleteDialog(false);
+    } catch (error) {
+      throw error;
     }
   };
 
@@ -72,21 +62,20 @@ const File = ({ file, onFileDelete, onFileUpdate }: FileProps): JSX.Element => {
 
   const handleCloseUpdateDialog = () => {
     setOpenUpdateDialog(false);
-    setLoadingUpdateDialog(false);
   };
 
-  const handleUpdate = async (file: FileType) => {
-    if (onFileUpdate) {
-      try {
-        setLoadingUpdateDialog(true);
-        await onFileUpdate(file);
-      } catch (error) {
-        // Push error to snack
-      } finally {
-        setLoadingUpdateDialog(false);
-      }
-    } else {
+  const handleUpdate = async ({
+    file,
+    values,
+  }: {
+    file: FileType;
+    values: FileType;
+  }) => {
+    try {
+      await onFileUpdate({ file, values });
       setOpenUpdateDialog(false);
+    } catch (error) {
+      throw error;
     }
   };
 
@@ -112,14 +101,21 @@ const File = ({ file, onFileDelete, onFileUpdate }: FileProps): JSX.Element => {
             >
               {file.name}
             </Typography>
-            {file.tags.map((tag) => (
-              <Chip
-                key={tag.tag_id}
-                sx={{ marginRight: 1, marginTop: 2 }}
-                size="small"
-                label={tag.name}
-              />
-            ))}
+            <Stack
+              direction="row"
+              paddingY={2}
+              sx={{ overflow: "scroll" }}
+              spacing={1}
+            >
+              {file.tags.map((tag) => (
+                <Chip
+                  key={tag.name}
+                  // sx={{ marginRight: 1, marginTop: 2 }}
+                  size="small"
+                  label={tag.name}
+                />
+              ))}
+            </Stack>
           </CardContent>
         </CardActionArea>
         <CardActions>
@@ -130,108 +126,20 @@ const File = ({ file, onFileDelete, onFileUpdate }: FileProps): JSX.Element => {
       </Card>
       <DeleteDialog
         open={openDeleteDialog}
-        loading={loadingDeleteDialog}
         onCancel={handleCloseDeleteDialog}
         onConfirm={() => handleDelete(file)}
         file={file}
       />
       <UpdateDialog
         open={openUpdateDialog}
-        loading={loadingUpdateDialog}
+        onCreateLink={() => onCreatePublicLink(file)}
+        onDeleteLink={() => onDeletePublicLink(file)}
         onCancel={handleCloseUpdateDialog}
-        onConfirm={() => handleUpdate(file)}
+        onConfirm={(values) => handleUpdate({ file, values })}
         file={file}
+        tags={tags}
       />
     </div>
-  );
-};
-
-const DeleteDialog = ({
-  open,
-  onCancel,
-  onConfirm,
-  file,
-  loading,
-}: {
-  open: boolean;
-  loading: boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
-  file: FileType;
-}): JSX.Element => {
-  return (
-    <Dialog
-      open={open}
-      onClose={onCancel}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
-    >
-      <DialogTitle id="alert-dialog-title">Delete forever?</DialogTitle>
-      <DialogContent>
-        <DialogContentText id="alert-dialog-description">
-          {`"${file.name}" will be deleted forever and you won't be able to restore it.`}
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onCancel}>Cancel</Button>
-        <LoadingButton
-          onClick={onConfirm}
-          loading={loading}
-          loadingPosition="start"
-          variant="contained"
-          startIcon={<DeleteIcon />}
-          autoFocus
-        >
-          Delete forever
-        </LoadingButton>
-      </DialogActions>
-    </Dialog>
-  );
-};
-
-const UpdateDialog = ({
-  open,
-  onCancel,
-  onConfirm,
-  file,
-  loading,
-}: {
-  open: boolean;
-  loading: boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
-  file: FileType;
-}): JSX.Element => {
-  return (
-    <Dialog open={open} onClose={onCancel}>
-      <DialogTitle>Subscribe</DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          To subscribe to this website, please enter your email address here. We
-          will send updates occasionally.
-        </DialogContentText>
-        <TextField
-          autoFocus
-          margin="dense"
-          id="name"
-          label="Email Address"
-          type="email"
-          fullWidth
-          variant="standard"
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onCancel}>Cancel</Button>
-        <LoadingButton
-          onClick={onConfirm}
-          loading={loading}
-          variant="contained"
-          autoFocus
-        >
-          Save
-        </LoadingButton>
-      </DialogActions>
-    </Dialog>
   );
 };
 
