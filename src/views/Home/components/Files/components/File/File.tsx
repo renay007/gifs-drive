@@ -108,12 +108,7 @@ const File = ({
               spacing={1}
             >
               {file.tags.map((tag) => (
-                <Chip
-                  key={tag.name}
-                  // sx={{ marginRight: 1, marginTop: 2 }}
-                  size="small"
-                  label={tag.name}
-                />
+                <Chip key={tag.name} size="small" label={tag.name} />
               ))}
             </Stack>
           </CardContent>
