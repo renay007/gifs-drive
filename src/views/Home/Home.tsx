@@ -16,11 +16,11 @@ const Home = (): JSX.Element => {
   const { getFiles } = fileQueries;
   const { getTags } = tagQueries;
 
-  const tags = getTags?.data;
+  const tags = getTags?.data || [];
   const files = getFiles?.data;
 
-  const loading = getTags?.isLoading || getFiles?.isLoading;
-  const error = getTags?.error || getFiles?.error;
+  const loading = getFiles?.isLoading;
+  const error = getFiles?.error;
 
   const {
     createPublicLink,
@@ -41,7 +41,7 @@ const Home = (): JSX.Element => {
           {!loading && error ? (
             <Typography>{`Error fetching data: ${error}`}</Typography>
           ) : null}
-          {!loading && files && tags ? (
+          {!loading && files ? (
             <Files
               files={files}
               tags={tags}

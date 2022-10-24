@@ -4,6 +4,7 @@ export interface HookApiResponse {
 }
 
 export interface UseQueryResponseAny {
+  status: string;
   isLoading: boolean;
   error: any;
   data: any;
@@ -11,5 +12,4 @@ export interface UseQueryResponseAny {
 
 export interface ApiError {
   success: boolean;
-
 }

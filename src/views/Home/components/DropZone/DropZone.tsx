@@ -4,8 +4,21 @@ import { useDropzone } from "react-dropzone";
 import { DropZone } from "./styles";
 
 const _DropZone = (): JSX.Element => {
-  const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } =
-    useDropzone({ accept: { "image/gif": [] } });
+  const {
+    acceptedFiles,
+    fileRejections,
+    getRootProps,
+    getInputProps,
+    isFocused,
+    isDragAccept,
+    isDragReject,
+  } = useDropzone({
+    accept: { "image/gif": [] },
+    maxFiles: 10,
+    maxSize: 10485760,
+  });
+  console.log("acceptedFiles", acceptedFiles);
+  console.log("rejected files", fileRejections);
   return (
     <DropZone {...getRootProps({ isFocused, isDragAccept, isDragReject })}>
       <input {...getInputProps()} />
