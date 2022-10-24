@@ -8,4 +8,4 @@ export interface FileType {
   secure_url: string;
   public_url: string | null;
   tags: Tag[];
-}
+};

@@ -90,7 +90,7 @@ const UpdateDialog = ({
           <OutlinedInput
             id="outlined-adornment-public-url"
             type={"text"}
-            value={values.public_url || ""}
+            value={file.public_url || ""}
             onChange={handleChange("public_url")}
             endAdornment={
               <InputAdornment position="end">
@@ -104,7 +104,7 @@ const UpdateDialog = ({
                 )}
               </InputAdornment>
             }
-            label="Password"
+            label="Public URL"
           />
         </FormControl>
       </DialogContent>

@@ -13,19 +13,13 @@ import { FileType, Tag } from "./types";
 import { DeleteDialog, UpdateDialog } from "./components";
 import Stack from "@mui/material/Stack";
 
-interface FileProps {
+export interface FileProps {
   file: FileType;
   tags: Tag[];
-  onCreatePublicLink?: (file: FileType) => void;
-  onDeletePublicLink?: (file: FileType) => void;
-  onFileDelete?: (file: FileType) => void;
-  onFileUpdate?: ({
-    file,
-    values,
-  }: {
-    file: FileType;
-    values: FileType;
-  }) => void;
+  onCreatePublicLink?: ({ id }: { id: string }) => void;
+  onDeletePublicLink?: ({ id }: { id: string }) => void;
+  onFileDelete?: ({ id }: { id: string }) => void;
+  onFileUpdate?: ({ id, data }: { id: string; data: FileType }) => void;
 }
 
 const File = ({
@@ -47,9 +41,9 @@ const File = ({
     setOpenDeleteDialog(false);
   };
 
-  const handleDelete = async (file: FileType) => {
+  const handleDelete = async (data: { id: string }) => {
     try {
-      await onFileDelete(file);
+      await onFileDelete(data);
       setOpenDeleteDialog(false);
     } catch (error) {
       throw error;
@@ -64,15 +58,9 @@ const File = ({
     setOpenUpdateDialog(false);
   };
 
-  const handleUpdate = async ({
-    file,
-    values,
-  }: {
-    file: FileType;
-    values: FileType;
-  }) => {
+  const handleUpdate = async (obj: { id: string; data: FileType }) => {
     try {
-      await onFileUpdate({ file, values });
+      await onFileUpdate(obj);
       setOpenUpdateDialog(false);
     } catch (error) {
       throw error;
@@ -122,15 +110,15 @@ const File = ({
       <DeleteDialog
         open={openDeleteDialog}
         onCancel={handleCloseDeleteDialog}
-        onConfirm={() => handleDelete(file)}
+        onConfirm={() => handleDelete({ id: file.file_id })}
         file={file}
       />
       <UpdateDialog
         open={openUpdateDialog}
-        onCreateLink={() => onCreatePublicLink(file)}
-        onDeleteLink={() => onDeletePublicLink(file)}
+        onCreateLink={() => onCreatePublicLink({ id: file.file_id })}
+        onDeleteLink={() => onDeletePublicLink({ id: file.file_id })}
         onCancel={handleCloseUpdateDialog}
-        onConfirm={(values) => handleUpdate({ file, values })}
+        onConfirm={(values) => handleUpdate({ id: file.file_id, data: values })}
         file={file}
         tags={tags}
       />
