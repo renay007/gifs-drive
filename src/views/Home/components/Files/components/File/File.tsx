@@ -46,7 +46,7 @@ const File = ({
       await onFileDelete(data);
       setOpenDeleteDialog(false);
     } catch (error) {
-      throw error;
+      console.log("failed to delete", error);
     }
   };
 
@@ -63,7 +63,7 @@ const File = ({
       await onFileUpdate(obj);
       setOpenUpdateDialog(false);
     } catch (error) {
-      throw error;
+      console.log("failed to update", error);
     }
   };
 

@@ -28,7 +28,7 @@ const DeleteDialog = ({
       setLoading(true);
       await onConfirm();
     } catch (error) {
-      throw error;
+      console.log("failed to delete:handleConfirm", error);
     } finally {
       setLoading(false);
     }

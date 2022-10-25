@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useContext } from "react";
 
 import { Container } from "./../../components";
-import Main from "../../layouts/Main";
-import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import Form from "./components/Form";
+import useAuth from "../../hooks/useAuth/useAuth";
+import { UserDispatchContext } from "../../context/UserContext";
 
 const Signin = (): JSX.Element => {
+  const setUserDetails = useContext(UserDispatchContext);
+  const { mutations } = useAuth();
   return (
     <Container>
       <Grid container alignItems={"center"} justifyContent={"center"}>
@@ -18,7 +20,7 @@ const Signin = (): JSX.Element => {
           xs={12}
           md={6}
         >
-          <Form />
+          <Form setUserDetails={setUserDetails} onSignin={mutations.signin} />
         </Grid>
       </Grid>
     </Container>

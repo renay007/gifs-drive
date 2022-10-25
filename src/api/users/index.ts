@@ -1,11 +1,12 @@
 import axios from "axios";
 import { Response } from "../types";
 
-interface User {
+export interface User {
   user_id: string;
   first_name: string;
   last_name: string;
   email: string;
+  token?: string;
 }
 
 export interface UserSignUp {
