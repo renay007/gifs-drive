@@ -9,6 +9,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 import { IconButton } from "@mui/material";
 
 interface ProgressItemProps extends LinearProgressProps {
+  name: string;
   value: number;
 }
 
@@ -26,7 +27,7 @@ const ProgressItem = (props: ProgressItemProps): JSX.Element => {
       <Box sx={{ flexGrow: 1 }}>
         <Box sx={{ minWidth: 35, mb: 1 }}>
           <Typography variant="body2" color="text.secondary">
-            good-morning-minions.gif
+            {props.name}
           </Typography>
         </Box>
         <Box sx={{ width: "100%", mr: 1 }}>
