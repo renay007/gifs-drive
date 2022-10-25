@@ -17,8 +17,6 @@ const _DropZone = (): JSX.Element => {
     maxFiles: 10,
     maxSize: 10485760,
   });
-  console.log("acceptedFiles", acceptedFiles);
-  console.log("rejected files", fileRejections);
   return (
     <DropZone {...getRootProps({ isFocused, isDragAccept, isDragReject })}>
       <input {...getInputProps()} />

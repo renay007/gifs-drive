@@ -22,7 +22,11 @@ const settings: Setting[] = [
   },
 ];
 
-const Navbar = (): JSX.Element => {
+interface Props {
+  onLogout: () => void;
+}
+
+const Navbar = ({ onLogout }: Props): JSX.Element => {
   const [auth, setAuth] = React.useState(true);
 
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(
@@ -34,6 +38,7 @@ const Navbar = (): JSX.Element => {
   };
 
   const handleCloseUserMenu = () => {
+    onLogout();
     setAnchorElUser(null);
   };
 

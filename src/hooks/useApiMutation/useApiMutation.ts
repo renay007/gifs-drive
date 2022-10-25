@@ -8,7 +8,6 @@ const useApiMutation = (mutationFunction: any, keys?: any) => {
   const queryClient = useQueryClient();
   return useMutation(mutationFunction, {
     onSuccess: async (data) => {
-      console.log("success retrieving data", data);
       if (keys)
         return await Promise.all(
           keys.map((el: string[]) => queryClient.invalidateQueries(el))

@@ -52,7 +52,6 @@ const UpdateDialog = ({
       setLoading(true);
       await onConfirm(values);
     } catch (error) {
-      console.log("failed to update:handleConfirm", error);
     } finally {
       setLoading(false);
     }

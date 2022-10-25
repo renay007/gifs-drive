@@ -1,5 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
-import React, { Dispatch, SetStateAction, useContext } from "react";
+import React, { SetStateAction } from "react";
+import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import Box from "@mui/material/Box";
@@ -39,15 +40,14 @@ const Form = ({ onSignin, setUserDetails }: Props): JSX.Element => {
     password: "",
   };
 
+  const navigate = useNavigate();
+
   const onSubmit = async (values: UserSignIn) => {
-    console.log("values submitted", values);
     try {
       const response = await onSignin(values);
-      console.log("user", response.data);
       setUserDetails(response.data);
-    } catch (error) {
-      console.log("Failed to sign in");
-    }
+      navigate("/");
+    } catch (error) {}
   };
 
   const formik = useFormik({

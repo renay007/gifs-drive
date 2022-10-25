@@ -1,5 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
-import React, { Dispatch, SetStateAction } from "react";
+import React, { SetStateAction } from "react";
+import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import Box from "@mui/material/Box";
@@ -42,7 +43,7 @@ const validationSchema = yup.object({
 
 interface Props {
   onSignup: (form: UserSignUp) => any;
-  setUserDetails: Dispatch<SetStateAction<User>>;
+  setUserDetails: (value: any) => SetStateAction<void>;
 }
 
 const Form = ({ onSignup, setUserDetails }: Props): JSX.Element => {
@@ -53,15 +54,14 @@ const Form = ({ onSignup, setUserDetails }: Props): JSX.Element => {
     password: "",
   };
 
+  const navigate = useNavigate();
+
   const onSubmit = async (values: UserSignUp) => {
-    console.log("values submitted", values);
     try {
       const response = await onSignup(values);
-      console.log("user", response.data);
       setUserDetails(response.data);
-    } catch (error) {
-      console.log("Failed to sign in");
-    }
+      navigate("/");
+    } catch (error) {}
   };
 
   const formik = useFormik({

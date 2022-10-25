@@ -1,10 +1,4 @@
-import {
-  createContext,
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, Dispatch, SetStateAction } from "react";
 import { User } from "../api/users";
 import usePersistate from "../hooks/usePersistate/usePersistate";
 

@@ -14,10 +14,7 @@ import protectedRoutes from "./views/routes";
 
 const Routes = (): JSX.Element => {
   const userDetails = useContext(UserContext);
-  console.log("userDetails", userDetails);
   const isLoggedIn = !isEmpty(userDetails) && userDetails.user_id !== "";
-  // const isLoggedIn = true;
-  console.log("isLoggedIn", isLoggedIn);
   return (
     <ReactRoutes>
       {!isLoggedIn ? (
@@ -29,7 +26,6 @@ const Routes = (): JSX.Element => {
       ) : (
         <Route>
           {protectedRoutes.map((route, i) => {
-            console.log("item", route);
             return (
               <Route key={i} path={route.path} element={route.renderer()} />
             );

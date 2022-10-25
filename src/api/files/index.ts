@@ -17,7 +17,6 @@ export const updateFile = ({
   data: FileType;
 }): Promise<FileResponseWithDataObject> => {
   const form = JSON.stringify(data);
-  console.log("fileId", id, "data", data);
   const options = { headers: { "Content-Type": "application/json" } };
   return axios.patch(`/api/files/${id}`, form, options).then((res) => res.data);
 };
