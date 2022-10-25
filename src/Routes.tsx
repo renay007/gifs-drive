@@ -15,7 +15,10 @@ import views from "./views/routes";
 const Routes = (): JSX.Element => {
   const userDetails = useContext(UserContext);
   console.log("userDetails", userDetails);
-  console.log("checking logic", isEmpty(userDetails) || !userDetails.user_id);
+  console.log(
+    "isLoggedIn",
+    !isEmpty(userDetails) && userDetails.user_id !== ""
+  );
   return (
     <ReactRoutes>
       {isEmpty(userDetails) || !userDetails.user_id ? (

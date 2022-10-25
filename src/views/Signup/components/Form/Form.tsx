@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unescaped-entities */
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import Box from "@mui/material/Box";
@@ -9,15 +9,16 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Link from "@mui/material/Link";
 import AdbIcon from "@mui/icons-material/Adb";
+import { User, UserSignIn, UserSignUp } from "../../../../api/users";
 
 const validationSchema = yup.object({
-  firstName: yup
+  first_name: yup
     .string()
     .trim()
     .min(2, "Please enter a valid name")
     .max(50, "Please enter a valid name")
     .required("Please specify your first name"),
-  lastName: yup
+  last_name: yup
     .string()
     .trim()
     .min(2, "Please enter a valid name")
@@ -32,12 +33,19 @@ const validationSchema = yup.object({
     .string()
     .required("Please specify your password")
     .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*d)(?=.*[@$!%*?&])[A-Za-zd@$!%*?&]{8,}$/,
+      new RegExp(
+        "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$"
+      ),
       "Minimum eight characters, at least one uppercase letter, one lowercase letter, one number and one special character"
     ),
 });
 
-const Form = (): JSX.Element => {
+interface Props {
+  onSignup: (form: UserSignUp) => any;
+  setUserDetails: Dispatch<SetStateAction<User>>;
+}
+
+const Form = ({ onSignup, setUserDetails }: Props): JSX.Element => {
   const initialValues = {
     first_name: "",
     last_name: "",
@@ -45,9 +53,15 @@ const Form = (): JSX.Element => {
     password: "",
   };
 
-  const onSubmit = () => {
-    return;
-    // return values;
+  const onSubmit = async (values: UserSignUp) => {
+    console.log("values submitted", values);
+    try {
+      const response = await onSignup(values);
+      console.log("user", response.data);
+      setUserDetails(response.data);
+    } catch (error) {
+      console.log("Failed to sign in");
+    }
   };
 
   const formik = useFormik({
@@ -81,7 +95,7 @@ const Form = (): JSX.Element => {
             <TextField
               label="First name *"
               variant="outlined"
-              name={"firstName"}
+              name={"first_name"}
               fullWidth
               value={formik.values.first_name}
               onChange={formik.handleChange}
@@ -98,7 +112,7 @@ const Form = (): JSX.Element => {
             <TextField
               label="Last name *"
               variant="outlined"
-              name={"lastName"}
+              name={"last_name"}
               fullWidth
               value={formik.values.last_name}
               onChange={formik.handleChange}

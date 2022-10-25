@@ -27,6 +27,7 @@ const validationSchema = yup.object({
       "Minimum eight characters, at least one uppercase letter, one lowercase letter, one number and one special character"
     ),
 });
+
 interface Props {
   onSignin: (form: UserSignIn) => any;
   setUserDetails: Dispatch<SetStateAction<User>>;
