@@ -6,23 +6,48 @@ import Collapse from "@mui/material/Collapse";
 
 import { ProgressHeader, ProgressItem } from "./components";
 import {
+  CustomFile,
   FileUpload,
   ProgressDrawerContext,
+  ProgressDrawerDispatchContext,
 } from "../../../../context/ProgressDrawerContext";
-import { useContext } from "react";
+import { useCallback, useContext, useMemo } from "react";
 
 const ProgressDrawer = (): JSX.Element => {
   const [expanded, setExpanded] = React.useState(false);
   const progressDetails: FileUpload[] = useContext(ProgressDrawerContext);
+  const setProgressDetails = useContext(ProgressDrawerDispatchContext);
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
+
+  const handleDelete = (file: CustomFile) => {
+    setProgressDetails((curr: any) =>
+      curr.filter((item: FileUpload) => item.file != file)
+    );
+  };
+
+  const canClear = useMemo(() => {
+    return (
+      progressDetails.filter((item: FileUpload) => item.errors.length > 0)
+        .length > 0
+    );
+  }, [progressDetails]);
+
+  const handleClear = useCallback((): void => {
+    setProgressDetails((curr: any) =>
+      curr.filter((item: FileUpload) => item.errors.length === 0)
+    );
+  }, [progressDetails]);
+
   return (
     <Box sx={{ position: "fixed", bottom: 15, right: 15 }}>
       <Card sx={{ width: { xs: 350, md: 500 } }}>
         <ProgressHeader
           expand={expanded}
+          canClear={canClear}
+          onClearAll={handleClear}
           onExpandClick={handleExpandClick}
           title="Tap to see your files in progress"
           subheader=""
@@ -33,7 +58,12 @@ const ProgressDrawer = (): JSX.Element => {
           >
             {progressDetails.map((file: FileUpload, idx: number) => {
               return (
-                <ProgressItem key={idx} name={file?.file?.name} value={80} />
+                <ProgressItem
+                  onDelete={handleDelete}
+                  key={idx}
+                  file={file}
+                  value={80}
+                />
               );
             })}
           </CardContent>

@@ -45,9 +45,10 @@ const _DropZone = (): JSX.Element => {
 
     if (acceptedJSON.length > 0 || rejectedJSON.length > 0)
       setProgressDetails((curr: any) => {
-        return [...curr, ...acceptedJSON, ...rejectedJSON];
+        return [...acceptedJSON, ...rejectedJSON, ...curr];
       });
   }, [acceptedFiles, fileRejections]);
+
   return (
     <DropZone {...getRootProps({ isFocused, isDragAccept, isDragReject })}>
       <input {...getInputProps()} />
