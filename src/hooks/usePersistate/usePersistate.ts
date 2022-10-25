@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default (storageKey: string, initialState: any) => {
+  const ref = useRef(initialState);
   const [state, setInternalState] = useState(initialState);
 
   useEffect(() => {
@@ -12,8 +13,9 @@ export default (storageKey: string, initialState: any) => {
   }, []);
 
   const setState = (newState: any) => {
-    localStorage.setItem(storageKey, JSON.stringify(newState || {}));
-    setInternalState(newState);
+    ref.current = typeof newState === "function" ? newState(state) : newState;
+    localStorage.setItem(storageKey, JSON.stringify(ref.current || {}));
+    setInternalState(ref.current);
   };
 
   return [state, setState];

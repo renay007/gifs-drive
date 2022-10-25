@@ -5,18 +5,19 @@ import CardContent from "@mui/material/CardContent";
 import Collapse from "@mui/material/Collapse";
 
 import { ProgressHeader, ProgressItem } from "./components";
-import { ProgressDrawerContext } from "../../../../context/ProgressDrawerContext";
+import {
+  FileUpload,
+  ProgressDrawerContext,
+} from "../../../../context/ProgressDrawerContext";
 import { useContext } from "react";
 
 const ProgressDrawer = (): JSX.Element => {
   const [expanded, setExpanded] = React.useState(false);
-  const progressDetails: any = useContext(ProgressDrawerContext);
+  const progressDetails: FileUpload[] = useContext(ProgressDrawerContext);
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
-
-  const { acceptedFiles, fileRejections } = progressDetails;
   return (
     <Box sx={{ position: "fixed", bottom: 15, right: 15 }}>
       <Card sx={{ width: { xs: 350, md: 500 } }}>
@@ -30,8 +31,10 @@ const ProgressDrawer = (): JSX.Element => {
           <CardContent
             sx={{ overflow: "auto", maxHeight: 400, minHeight: 100 }}
           >
-            {acceptedFiles.map((file: any) => {
-              return <ProgressItem name={file?.path} value={80} />;
+            {progressDetails.map((file: FileUpload, idx: number) => {
+              return (
+                <ProgressItem key={idx} name={file?.file?.name} value={80} />
+              );
             })}
           </CardContent>
         </Collapse>

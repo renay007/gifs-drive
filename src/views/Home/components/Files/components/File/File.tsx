@@ -88,6 +88,7 @@ const File = ({
             <Stack
               direction="row"
               paddingY={2}
+              height={16}
               sx={{ overflow: "scroll" }}
               spacing={1}
             >

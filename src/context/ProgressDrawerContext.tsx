@@ -11,10 +11,29 @@ interface Props {
   children: React.ReactNode;
 }
 
+export interface CustomFileError {
+  code: string;
+  message: string;
+}
+
+export interface CustomFile {
+  name: string;
+  size: number;
+  type: string;
+  dateAdded: Date;
+}
+
+export interface FileUpload {
+  file: CustomFile;
+  errors: CustomFileError[];
+}
+
 const ProgressDrawerProvider = ({ children }: Props): JSX.Element => {
+  const initialState: FileUpload[] = [];
+  const stateString = JSON.stringify(initialState);
   const [progressDetails, setProgressDrawerDetails] = usePersistate(
     "progressDetails",
-    JSON.parse(localStorage.getItem("progressDetails") || "{}")
+    JSON.parse(localStorage.getItem("progressDetails") || stateString)
   );
 
   return (
