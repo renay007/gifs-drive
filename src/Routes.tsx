@@ -10,31 +10,33 @@ import {
   NotFound as NotFoundView,
 } from "./views";
 
-import views from "./views/routes";
+import protectedRoutes from "./views/routes";
 
 const Routes = (): JSX.Element => {
   const userDetails = useContext(UserContext);
   console.log("userDetails", userDetails);
-  console.log(
-    "isLoggedIn",
-    !isEmpty(userDetails) && userDetails.user_id !== ""
-  );
+  const isLoggedIn = !isEmpty(userDetails) && userDetails.user_id !== "";
+  // const isLoggedIn = true;
+  console.log("isLoggedIn", isLoggedIn);
   return (
     <ReactRoutes>
-      {isEmpty(userDetails) || !userDetails.user_id ? (
-        <>
+      {!isLoggedIn ? (
+        <Route>
           <Route path={"/signin"} element={<SigninView />} />
           <Route path={"/signup"} element={<SignupView />} />
-          <Route path={"/not-found"} element={<NotFoundView />} />
           <Route path="/" element={<Navigate replace to="/signin" />} />
-        </>
+        </Route>
       ) : (
-        <>
-          {views.map((item, i) => (
-            <Route key={i} path={item.path} element={item.renderer()} />
-          ))}
-        </>
+        <Route>
+          {protectedRoutes.map((route, i) => {
+            console.log("item", route);
+            return (
+              <Route key={i} path={route.path} element={route.renderer()} />
+            );
+          })}
+        </Route>
       )}
+      <Route path={"/not-found"} element={<NotFoundView />} />
       <Route path="*" element={<Navigate replace to="/not-found" />} />
     </ReactRoutes>
   );

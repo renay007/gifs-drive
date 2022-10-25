@@ -30,7 +30,7 @@ const validationSchema = yup.object({
 
 interface Props {
   onSignin: (form: UserSignIn) => any;
-  setUserDetails: Dispatch<SetStateAction<User>>;
+  setUserDetails: (value: any) => SetStateAction<void>;
 }
 
 const Form = ({ onSignin, setUserDetails }: Props): JSX.Element => {

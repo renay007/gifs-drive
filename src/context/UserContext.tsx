@@ -1,5 +1,12 @@
-import { createContext, Dispatch, SetStateAction, useState } from "react";
+import {
+  createContext,
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 import { User } from "../api/users";
+import usePersistate from "../hooks/usePersistate/usePersistate";
 
 const UserContext = createContext<User>(undefined!);
 const UserDispatchContext = createContext<Dispatch<SetStateAction<User>>>(
@@ -11,13 +18,10 @@ interface Props {
 }
 
 const UserProvider = ({ children }: Props): JSX.Element => {
-  const [userDetails, setUserDetails] = useState<User>({
-    user_id: "",
-    first_name: "",
-    last_name: "",
-    email: "",
-    token: "",
-  });
+  const [userDetails, setUserDetails] = usePersistate(
+    "user",
+    JSON.parse(localStorage.getItem("user") || "{}")
+  );
 
   return (
     <UserContext.Provider value={userDetails}>
