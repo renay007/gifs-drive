@@ -1,33 +1,24 @@
-import { createContext, Dispatch, SetStateAction, useState } from "react";
+import { createContext, Dispatch, SetStateAction } from "react";
+// import { ProgressDrawer } from "../api/progresss";
+import usePersistate from "../hooks/usePersistate/usePersistate";
 
-const ProgressDrawerContext = createContext<ProgressDrawer>(undefined!);
-const ProgressDrawerDispatchContext = createContext<Dispatch<SetStateAction<ProgressDrawer>>>(
-  undefined!
-);
+const ProgressDrawerContext = createContext<any>(undefined!);
+const ProgressDrawerDispatchContext = createContext<
+  Dispatch<SetStateAction<any>>
+>(undefined!);
 
 interface Props {
   children: React.ReactNode;
 }
 
-interface ProgressDrawer {
-  user_id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  token: string;
-}
-
 const ProgressDrawerProvider = ({ children }: Props): JSX.Element => {
-  const [userDetails, setProgressDrawerDetails] = useState<ProgressDrawer>({
-    user_id: "",
-    first_name: "",
-    last_name: "",
-    email: "",
-    token: "",
-  });
+  const [progressDetails, setProgressDrawerDetails] = usePersistate(
+    "progressDetails",
+    JSON.parse(localStorage.getItem("progressDetails") || "{}")
+  );
 
   return (
-    <ProgressDrawerContext.Provider value={userDetails}>
+    <ProgressDrawerContext.Provider value={progressDetails}>
       <ProgressDrawerDispatchContext.Provider value={setProgressDrawerDetails}>
         {children}
       </ProgressDrawerDispatchContext.Provider>
@@ -35,4 +26,8 @@ const ProgressDrawerProvider = ({ children }: Props): JSX.Element => {
   );
 };
 
-export { ProgressDrawerProvider, ProgressDrawerContext, ProgressDrawerDispatchContext };
+export {
+  ProgressDrawerProvider,
+  ProgressDrawerContext,
+  ProgressDrawerDispatchContext,
+};

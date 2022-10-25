@@ -38,6 +38,10 @@ const Navbar = ({ onLogout }: Props): JSX.Element => {
   };
 
   const handleCloseUserMenu = () => {
+    setAnchorElUser(null);
+  };
+
+  const handleLogout = () => {
     onLogout();
     setAnchorElUser(null);
   };
@@ -85,7 +89,7 @@ const Navbar = ({ onLogout }: Props): JSX.Element => {
             onClose={handleCloseUserMenu}
           >
             {settings.map((setting, id) => (
-              <MenuItem key={id} onClick={handleCloseUserMenu}>
+              <MenuItem key={id} onClick={handleLogout}>
                 <Typography textAlign="center">{setting.name}</Typography>
               </MenuItem>
             ))}
