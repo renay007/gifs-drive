@@ -69,7 +69,7 @@ const Form = ({ onSignin, setUserDetails }: Props): JSX.Element => {
           Login
         </Typography>
         <Typography color="text.secondary">
-          Login to manage your account.
+          Login to manage your GIF drive.
         </Typography>
       </Box>
       <form onSubmit={formik.handleSubmit}>
