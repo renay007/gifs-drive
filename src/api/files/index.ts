@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import { Response } from "../types";
 import { FileType } from "../../views/Home/components/Files/components/File/types";
 
@@ -34,9 +34,9 @@ export const uploadFile = ({
   config,
 }: {
   data: FormData;
-  config: any;
+  config?: AxiosRequestConfig;
 }): Promise<FileResponseWithDataObject> => {
-  return axios.post("/api/files", data, config).then((res) => res.data);
+  return axios.post("/api/files/upload", data, config).then((res) => res.data);
 };
 
 export const createPublicLink = ({

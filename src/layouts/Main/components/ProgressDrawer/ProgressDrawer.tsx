@@ -62,7 +62,7 @@ const ProgressDrawer = (): JSX.Element => {
                   onDelete={handleDelete}
                   key={idx}
                   file={file}
-                  value={80}
+                  value={file.progress || 0}
                 />
               );
             })}

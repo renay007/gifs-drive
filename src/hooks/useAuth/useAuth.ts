@@ -14,7 +14,10 @@ const useAuth = () => {
       processApiMutation(signinMutation.mutateAsync(obj)),
     signup: async (obj: any) =>
       processApiMutation(signupMutation.mutateAsync(obj)),
-    logout: async () => setUserDetails(null),
+    logout: async () => {
+      setUserDetails(null);
+      localStorage.clear();
+    },
   };
 
   return {

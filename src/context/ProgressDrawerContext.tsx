@@ -1,5 +1,5 @@
 import { createContext, Dispatch, SetStateAction } from "react";
-// import { ProgressDrawer } from "../api/progresss";
+import { FileError } from "react-dropzone";
 import usePersistate from "../hooks/usePersistate/usePersistate";
 
 const ProgressDrawerContext = createContext<any>(undefined!);
@@ -17,13 +17,15 @@ export interface CustomFileError {
 }
 
 export interface CustomFile {
+  id: string;
   name: string;
   size: number;
   type: string;
-  dateAdded: Date;
+  dateAdded?: Date;
 }
 
 export interface FileUpload {
+  progress?: number;
   file: CustomFile;
   errors: CustomFileError[];
 }
