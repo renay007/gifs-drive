@@ -31,7 +31,7 @@ const getUploadPath = ({
   resourceId: string;
   file: { mimetype: string };
 }): string => {
-  const dir = path.resolve("..", "private", "uploads");
+  const dir = path.resolve("..", "..", "storage", "uploads");
   const { mimetype } = file;
   const extension = mime.extension(mimetype) || "";
   const type = mime.types[extension].split("/")[0];

@@ -38,9 +38,7 @@
     "yup": "0.32.11"
   },
   "scripts": {
-    "start-client": "react-scripts start",
-    "start-server": "cd server && nodemon",
-    "start": "yarn build && (cd server && yarn build && yarn start)",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
