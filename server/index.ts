@@ -11,7 +11,6 @@ const port = process.env.PORT || 5000;
 const app = express();
 const router = express.Router();
 const prisma = new PrismaClient({ ...config.prisma });
-console.log("prisma config", config.prisma);
 
 app.use(express.static(path.resolve("..", "build")));
 app.use(morgan("dev"));
@@ -22,6 +21,4 @@ api(prisma, router);
 
 app.use("/", router);
 
-app.listen(port, () => {
-  console.log("Server listening on port " + port);
-});
+app.listen(port, () => {});

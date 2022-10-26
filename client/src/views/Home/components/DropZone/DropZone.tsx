@@ -33,32 +33,6 @@ const _DropZone = (): JSX.Element => {
   const [files, setFiles] = useState<OnFileUpload[]>([]);
   const setProgressDetails = useContext(ProgressDrawerDispatchContext);
 
-  // const onDrop = useCallback(
-  //   (acceptedFiles: File[], fileRejections: FileRejection[]) => {
-  //     console.log("accepted", acceptedFiles);
-  //     console.log("rejected", fileRejections);
-  //     const accepted: OnFileUpload[] = acceptedFiles.map((file) => ({
-  //       id: uuidv4(),
-  //       file,
-  //       errors: [],
-  //     }));
-  //     const rejected: OnFileUpload[] = fileRejections.map((file) => ({
-  //       id: uuidv4(),
-  //       file: file.file,
-  //       errors: file.errors,
-  //     }));
-
-  //     setFiles(accepted);
-
-  //     const acceptedJSON: FileUpload[] = accepted.map(sanitize);
-  //     const rejectedJSON: FileUpload[] = rejected.map(sanitize);
-  //     setProgressDetails((curr: FileUpload[]) => {
-  //       return [...acceptedJSON, ...rejectedJSON, ...curr];
-  //     });
-  //   },
-  //   []
-  // );
-
   const {
     acceptedFiles,
     fileRejections,
@@ -74,8 +48,6 @@ const _DropZone = (): JSX.Element => {
   });
 
   useEffect(() => {
-    console.log("accepted", acceptedFiles);
-    console.log("rejected", fileRejections);
     const accepted: OnFileUpload[] = acceptedFiles.map((file) => ({
       id: uuidv4(),
       file,
