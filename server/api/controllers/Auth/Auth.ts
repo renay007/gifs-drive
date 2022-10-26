@@ -24,9 +24,9 @@ import * as config from "../../../config";
 
 const { isEmail, isStrongPassword: isStrong } = validator;
 
-export default (router: Router) => {
+export default (prisma: PrismaClient, router: Router) => {
   router.post("/api/signup", async (req, res) => {
-    let prisma;
+    // let prisma;
     try {
       const { body } = req;
       if (_isEmpty(body)) throw badRequest();
@@ -58,7 +58,7 @@ export default (router: Router) => {
 
       if (!isStrong(password)) throw weakPassword();
 
-      prisma = new PrismaClient({ ...config.prisma });
+      // prisma = new PrismaClient({ ...config.prisma });
       let user = await prisma.user.findUnique({ where: { email } });
 
       if (user) throw emailExists();
@@ -83,12 +83,12 @@ export default (router: Router) => {
       const { statusCode, ...rest } = errorMessage(error);
       return res.status(statusCode || 400).send(rest);
     } finally {
-      if (prisma) await prisma.$disconnect();
+      // if (prisma) await prisma.$disconnect();
     }
   });
 
   router.post("/api/signin", async (req, res) => {
-    let prisma;
+    // let prisma;
     try {
       const { body } = req;
       if (_isEmpty(body)) throw badRequest();
@@ -108,7 +108,7 @@ export default (router: Router) => {
 
       if (!isEmail(email)) throw invalidEmail();
 
-      prisma = new PrismaClient({ ...config.prisma });
+      // prisma = new PrismaClient({ ...config.prisma });
       const user = await prisma.user.findUnique({ where: { email } });
 
       if (!user) throw userNotFound();
@@ -124,7 +124,7 @@ export default (router: Router) => {
       const { statusCode, ...rest } = errorMessage(error);
       return res.status(statusCode || 400).send(rest);
     } finally {
-      if (prisma) await prisma.$disconnect();
+      // if (prisma) await prisma.$disconnect();
     }
   });
 };

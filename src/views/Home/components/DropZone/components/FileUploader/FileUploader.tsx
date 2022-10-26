@@ -24,13 +24,13 @@ const FileUploader = ({
   useEffect(() => {
     const upload = async () => {
       try {
-        const response = (await onFileUpload({ id, file, onProgress })) || {};
+        await onFileUpload({ id, file, onProgress });
       } catch (error) {
         if (onUploadFail) onUploadFail(id, error);
       }
     };
     upload();
-  }, []);
+  }, [file]);
 
   const onFileUpload = async ({ id, file, onProgress }: Props) => {
     const data = new FormData();

@@ -33,29 +33,68 @@ const _DropZone = (): JSX.Element => {
   const [files, setFiles] = useState<OnFileUpload[]>([]);
   const setProgressDetails = useContext(ProgressDrawerDispatchContext);
 
-  const onDrop = useCallback(
-    (acceptedFiles: File[], fileRejections: FileRejection[]) => {
-      const accepted: OnFileUpload[] = acceptedFiles.map((file) => ({
-        id: uuidv4(),
-        file,
-        errors: [],
-      }));
-      const rejected: OnFileUpload[] = fileRejections.map((file) => ({
-        id: uuidv4(),
-        file: file.file,
-        errors: file.errors,
-      }));
+  // const onDrop = useCallback(
+  //   (acceptedFiles: File[], fileRejections: FileRejection[]) => {
+  //     console.log("accepted", acceptedFiles);
+  //     console.log("rejected", fileRejections);
+  //     const accepted: OnFileUpload[] = acceptedFiles.map((file) => ({
+  //       id: uuidv4(),
+  //       file,
+  //       errors: [],
+  //     }));
+  //     const rejected: OnFileUpload[] = fileRejections.map((file) => ({
+  //       id: uuidv4(),
+  //       file: file.file,
+  //       errors: file.errors,
+  //     }));
 
-      setFiles(accepted);
+  //     setFiles(accepted);
 
-      const acceptedJSON: FileUpload[] = accepted.map(sanitize);
-      const rejectedJSON: FileUpload[] = rejected.map(sanitize);
-      setProgressDetails((curr: FileUpload[]) => {
-        return [...acceptedJSON, ...rejectedJSON, ...curr];
-      });
-    },
-    []
-  );
+  //     const acceptedJSON: FileUpload[] = accepted.map(sanitize);
+  //     const rejectedJSON: FileUpload[] = rejected.map(sanitize);
+  //     setProgressDetails((curr: FileUpload[]) => {
+  //       return [...acceptedJSON, ...rejectedJSON, ...curr];
+  //     });
+  //   },
+  //   []
+  // );
+
+  const {
+    acceptedFiles,
+    fileRejections,
+    getRootProps,
+    getInputProps,
+    isFocused,
+    isDragAccept,
+    isDragReject,
+  } = useDropzone({
+    accept: { "image/gif": [] },
+    maxFiles: 10,
+    maxSize: 10485760 * 100,
+  });
+
+  useEffect(() => {
+    console.log("accepted", acceptedFiles);
+    console.log("rejected", fileRejections);
+    const accepted: OnFileUpload[] = acceptedFiles.map((file) => ({
+      id: uuidv4(),
+      file,
+      errors: [],
+    }));
+    const rejected: OnFileUpload[] = fileRejections.map((file) => ({
+      id: uuidv4(),
+      file: file.file,
+      errors: file.errors,
+    }));
+
+    setFiles(accepted);
+
+    const acceptedJSON: FileUpload[] = accepted.map(sanitize);
+    const rejectedJSON: FileUpload[] = rejected.map(sanitize);
+    setProgressDetails((curr: FileUpload[]) => {
+      return [...acceptedJSON, ...rejectedJSON, ...curr];
+    });
+  }, [acceptedFiles, fileRejections]);
 
   const onProgress = (id: string, progress: number) => {
     setProgressDetails((curr: FileUpload[]) =>
@@ -84,14 +123,6 @@ const _DropZone = (): JSX.Element => {
       })
     );
   };
-
-  const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } =
-    useDropzone({
-      onDrop,
-      accept: { "image/gif": [] },
-      maxFiles: 10,
-      maxSize: 10485760 * 100,
-    });
 
   return (
     <>

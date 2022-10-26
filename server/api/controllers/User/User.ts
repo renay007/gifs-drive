@@ -4,16 +4,16 @@ import { PrismaClient } from "@prisma/client";
 import { badRequest, errorMessage, success, userNotFound } from "../../utils";
 import * as config from "../../../config";
 
-export default (router: Router) => {
+export default (prisma: PrismaClient, router: Router) => {
   router.get("/api/users/:user_id", async (req, res) => {
     const ID = "972646b0-d56c-409e-9404-783dbcf9c618";
-    let prisma;
+    // let prisma;
     try {
       const { user_id: userId } = req.params;
 
       if (!userId || userId !== "me") throw badRequest();
 
-      prisma = new PrismaClient({ ...config.prisma });
+      // prisma = new PrismaClient({ ...config.prisma });
       const user = await prisma.user.findUnique({ where: { user_id: ID } });
 
       if (!user) throw userNotFound();
@@ -25,7 +25,7 @@ export default (router: Router) => {
       const { statusCode, ...rest } = errorMessage(error);
       return res.status(statusCode || 400).send(rest);
     } finally {
-      if (prisma) await prisma.$disconnect();
+      // if (prisma) await prisma.$disconnect();
     }
   });
 };

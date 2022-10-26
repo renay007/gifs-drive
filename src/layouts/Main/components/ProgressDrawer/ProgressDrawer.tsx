@@ -30,14 +30,21 @@ const ProgressDrawer = (): JSX.Element => {
 
   const canClear = useMemo(() => {
     return (
-      progressDetails.filter((item: FileUpload) => item.errors.length > 0)
-        .length > 0
+      progressDetails.filter(
+        (item: FileUpload) =>
+          item.errors.length > 0 ||
+          !item.progress ||
+          (item.progress && item.progress >= 100)
+      ).length > 0
     );
   }, [progressDetails]);
 
   const handleClear = useCallback((): void => {
     setProgressDetails((curr: any) =>
-      curr.filter((item: FileUpload) => item.errors.length === 0)
+      curr.filter(
+        (item: FileUpload) =>
+          item.errors.length === 0 && item.progress && item.progress < 100
+      )
     );
   }, [progressDetails]);
 
