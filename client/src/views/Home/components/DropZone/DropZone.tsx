@@ -1,5 +1,5 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
-import { FileError, FileRejection, useDropzone } from "react-dropzone";
+import React, { useContext, useEffect, useState } from "react";
+import { FileError, useDropzone } from "react-dropzone";
 import { v4 as uuidv4 } from "uuid";
 import {
   CustomFile,

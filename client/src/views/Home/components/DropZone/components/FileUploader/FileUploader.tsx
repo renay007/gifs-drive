@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { AxiosRequestConfig } from "axios";
 import useFile from "../../../../../../hooks/useFile/useFile";
+import useDidUpdate from "../../../../../../hooks/useDidUpdate/useDidUpdate";
 
 interface CustomError {
   code: string;
@@ -21,7 +22,7 @@ const FileUploader = ({
   onUploadFail,
 }: Props): JSX.Element => {
   const { mutations } = useFile();
-  useEffect(() => {
+  useDidUpdate(() => {
     const upload = async () => {
       try {
         await onFileUpload({ id, file, onProgress });

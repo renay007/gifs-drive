@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import type { Router } from "express";
 import { FileArray, UploadedFile } from "express-fileupload";
-import { isEmpty as _isEmpty, rest } from "lodash";
+import { isEmpty as _isEmpty } from "lodash";
 import path from "path";
 import { Prisma, PrismaClient } from "@prisma/client";
 
@@ -26,15 +26,11 @@ import {
   noUpdate,
   success,
 } from "../../utils";
-import * as config from "../../../config";
 
-export default (prisma:PrismaClient, router: Router) => {
+export default (prisma: PrismaClient, router: Router) => {
   router.get("/cdn/private/view/files/:file_id_hash", async (req, res) => {
     const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
-    // let prisma;
     try {
-      // prisma = new PrismaClient({ ...config.prisma });
-
       const { params } = req;
       const { file_id_hash: fileIdHash } = params;
 
@@ -62,16 +58,11 @@ export default (prisma:PrismaClient, router: Router) => {
       return res.sendFile(path);
     } catch (error) {
       return res.status(404).send("No such file.");
-    } finally {
-      // if (prisma) await prisma.$disconnect();
     }
   });
 
   router.get("/cdn/public/view/files/:file_id_hash", async (req, res) => {
-    // let prisma;
     try {
-      // prisma = new PrismaClient({ ...config.prisma });
-
       const { params } = req;
       const { file_id_hash: fileIdHash } = params;
 
@@ -100,37 +91,32 @@ export default (prisma:PrismaClient, router: Router) => {
       return res.sendFile(path);
     } catch (error) {
       return res.status(404).send("No such file.");
-    } finally {
-      // if (prisma) await prisma.$disconnect();
     }
   });
 
   router.get("/api/files", async (req, res) => {
     const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
-    // let prisma;
-
     try {
-      // prisma = new PrismaClient({ ...config.prisma });
-
       const where: Prisma.FileWhereInput = { user_id: userId };
       const include: Prisma.FileInclude = { tags: true };
+      const orderBy: Prisma.FileOrderByWithRelationInput = {
+        created_at: "desc",
+      };
 
-      const files = await prisma.file.findMany({ where, include });
+      const files = await prisma.file.findMany({ where, include, orderBy });
 
       return res.status(200).send(success(files, "Success retrieving files."));
     } catch (error) {
       const { statusCode, ...rest } = errorMessage(error);
       return res.status(statusCode || 400).send(rest);
-    } finally {
-      // if (prisma) await prisma.$disconnect();
     }
   });
 
   router.post("/api/files/upload", async (req, res) => {
     const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
-    // let prisma;
     try {
       const files = req.files as FileArray;
+
       if (_isEmpty(files)) throw badRequest();
 
       const file = files.file as UploadedFile;
@@ -143,47 +129,43 @@ export default (prisma:PrismaClient, router: Router) => {
 
       if (!allowed.includes(ext)) throw invalidFileFormat(message);
 
-      // prisma = new PrismaClient({ ...config.prisma });
-      // const response = await prisma.$transaction(async (tx) => {
-      const date = new Date().toISOString();
-      const resourceId = randomUUID();
-      const urlParams = {
-        resourceId,
-        file,
-        secret: process.env.SECURE_URL_KEY || "",
-      };
-      const secureUrl = createSecureUrl(urlParams);
+      const response = await prisma.$transaction(async (tx) => {
+        const date = new Date().toISOString();
+        const resourceId = randomUUID();
+        const urlParams = {
+          resourceId,
+          file,
+          secret: process.env.SECURE_URL_KEY || "",
+        };
+        const secureUrl = createSecureUrl(urlParams);
 
-      const host = `${req.protocol}://${req.hostname}`;
-      const filePath = "cdn/private/view/files";
-      const data: Prisma.FileCreateInput = {
-        file_id: resourceId,
-        name,
-        size,
-        mimetype,
-        md5,
-        secure_url: `${host}/${filePath}/${secureUrl}`,
-        user: { connect: { user_id: userId } },
-        created_at: date,
-        updated_at: date,
-      };
-      await uploadFile({ userId, resourceId, file });
-      const response = await prisma.file.create({ data });
-      // return response;
-      // });
+        const host = `${req.protocol}://${req.hostname}`;
+        const filePath = "cdn/private/view/files";
+        const data: Prisma.FileCreateInput = {
+          file_id: resourceId,
+          name,
+          size,
+          mimetype,
+          md5,
+          secure_url: `${host}/${filePath}/${secureUrl}`,
+          user: { connect: { user_id: userId } },
+          created_at: date,
+          updated_at: date,
+        };
+        await uploadFile({ userId, resourceId, file });
+        const response = await prisma.file.create({ data });
+        return response;
+      });
 
       return res.status(200).send(success(response, "Success uploading file."));
     } catch (error) {
       const { statusCode, ...rest } = errorMessage(error);
       return res.status(statusCode || 400).send(rest);
-    } finally {
-      // if (prisma) await prisma.$disconnect();
     }
   });
 
   router.patch("/api/files/:file_id", async (req, res) => {
     const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
-    // let prisma;
     try {
       const { params, body } = req;
       const { file_id: fileId } = params;
@@ -194,8 +176,6 @@ export default (prisma:PrismaClient, router: Router) => {
 
       let message = "name should be a non-empty string";
       if (name && name === "") throw emptyString(message);
-
-      // prisma = new PrismaClient({ ...config.prisma });
 
       let hasUpdate = false;
       const result = await prisma.$transaction(async (tx) => {
@@ -232,20 +212,16 @@ export default (prisma:PrismaClient, router: Router) => {
     } catch (error) {
       const { statusCode, ...rest } = errorMessage(error);
       return res.status(statusCode || 400).send(rest);
-    } finally {
-      // if (prisma) await prisma.$disconnect();
     }
   });
 
   router.delete("/api/files/:file_id", async (req, res) => {
     const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
-    // let prisma;
     try {
       const { file_id: fileId } = req.params;
 
       if (!fileId) throw badRequest();
 
-      // prisma = new PrismaClient({ ...config.prisma });
       const where: Prisma.FileWhereInput = {};
       where["file_id"] = fileId;
       where["user_id"] = userId;
@@ -257,14 +233,11 @@ export default (prisma:PrismaClient, router: Router) => {
     } catch (error) {
       const { statusCode, ...rest } = errorMessage(error);
       return res.status(statusCode || 400).send(rest);
-    } finally {
-      // if (prisma) await prisma.$disconnect();
     }
   });
 
   router.post("/api/files/:file_id/link", async (req, res) => {
     const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
-    // let prisma;
     try {
       const { params } = req;
       const { file_id: fileId } = params;
@@ -301,21 +274,17 @@ export default (prisma:PrismaClient, router: Router) => {
     } catch (error) {
       const { statusCode, ...rest } = errorMessage(error);
       return res.status(statusCode || 400).send(rest);
-    } finally {
-      // if (prisma) await prisma.$disconnect();
     }
   });
 
   router.delete("/api/files/:file_id/link", async (req, res) => {
     const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
-    // let prisma;
     try {
       const { params } = req;
       const { file_id: fileId } = params;
 
       if (!fileId) throw badRequest();
 
-      // prisma = new PrismaClient({ ...config.prisma });
       const where: Prisma.FileWhereUniqueInput = { file_id: fileId };
       const resource = await prisma.file.findUnique({ where });
 
@@ -336,8 +305,6 @@ export default (prisma:PrismaClient, router: Router) => {
     } catch (error) {
       const { statusCode, ...rest } = errorMessage(error);
       return res.status(statusCode || 400).send(rest);
-    } finally {
-      // if (prisma) await prisma.$disconnect();
     }
   });
 };

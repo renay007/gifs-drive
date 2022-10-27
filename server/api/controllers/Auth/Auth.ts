@@ -20,15 +20,13 @@ import {
   weakPassword,
   wrongPassword,
 } from "../../utils";
-import * as config from "../../../config";
 
 const { isEmail, isStrongPassword: isStrong } = validator;
 
 export default (prisma: PrismaClient, router: Router) => {
   router.post("/api/signup", async (req, res) => {
-    // let prisma;
     try {
-      const { body } = req;
+      const body = req.body as SignupInput;
       if (_isEmpty(body)) throw badRequest();
 
       const required: (keyof SignupInput)[] = [
@@ -58,7 +56,6 @@ export default (prisma: PrismaClient, router: Router) => {
 
       if (!isStrong(password)) throw weakPassword();
 
-      // prisma = new PrismaClient({ ...config.prisma });
       let user = await prisma.user.findUnique({ where: { email } });
 
       if (user) throw emailExists();
@@ -82,15 +79,12 @@ export default (prisma: PrismaClient, router: Router) => {
     } catch (error) {
       const { statusCode, ...rest } = errorMessage(error);
       return res.status(statusCode || 400).send(rest);
-    } finally {
-      // if (prisma) await prisma.$disconnect();
     }
   });
 
   router.post("/api/signin", async (req, res) => {
-    // let prisma;
     try {
-      const { body } = req;
+      const body = req.body as SigninInput;
       if (_isEmpty(body)) throw badRequest();
 
       const required: (keyof SigninInput)[] = ["email", "password"];
@@ -108,7 +102,6 @@ export default (prisma: PrismaClient, router: Router) => {
 
       if (!isEmail(email)) throw invalidEmail();
 
-      // prisma = new PrismaClient({ ...config.prisma });
       const user = await prisma.user.findUnique({ where: { email } });
 
       if (!user) throw userNotFound();
@@ -123,8 +116,6 @@ export default (prisma: PrismaClient, router: Router) => {
     } catch (error) {
       const { statusCode, ...rest } = errorMessage(error);
       return res.status(statusCode || 400).send(rest);
-    } finally {
-      // if (prisma) await prisma.$disconnect();
     }
   });
 };
