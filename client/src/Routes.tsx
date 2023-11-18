@@ -1,10 +1,10 @@
 import React, { useContext } from "react";
 
+import axios from "axios";
 import { isEmpty } from "lodash";
 import { Routes as ReactRoutes, Route, Navigate } from "react-router-dom";
 import { UserContext } from "./context/UserContext";
 import {
-  Home as HomeView,
   Signin as SigninView,
   Signup as SignupView,
   NotFound as NotFoundView,
@@ -15,6 +15,12 @@ import protectedRoutes from "./views/routes";
 const Routes = (): JSX.Element => {
   const userDetails = useContext(UserContext);
   const isLoggedIn = !isEmpty(userDetails) && userDetails.user_id !== "";
+  if (isLoggedIn) {
+    const { token } = userDetails;
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  } else {
+    axios.defaults.headers.common["Authorization"] = null;
+  }
   return (
     <ReactRoutes>
       {!isLoggedIn ? (

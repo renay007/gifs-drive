@@ -1,17 +1,14 @@
 import type { Router } from "express";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
 
-import { badRequest, errorMessage, success, userNotFound } from "../../utils";
+import { errorMessage, success, userNotFound } from "../../utils";
+import { authenticate } from "../../utils/passport";
 
 export default (prisma: PrismaClient, router: Router) => {
-  router.get("/api/users/:user_id", async (req, res) => {
-    const ID = "972646b0-d56c-409e-9404-783dbcf9c618";
+  router.get("/api/users/me", authenticate(), async (req, res) => {
+    const { user_id: userId } = req.user as User;
     try {
-      const { user_id: userId } = req.params;
-
-      if (!userId || userId !== "me") throw badRequest();
-
-      const user = await prisma.user.findUnique({ where: { user_id: ID } });
+      const user = await prisma.user.findUnique({ where: { user_id: userId } });
 
       if (!user) throw userNotFound();
 

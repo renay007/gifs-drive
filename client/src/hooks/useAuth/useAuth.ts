@@ -1,6 +1,6 @@
 import { processApiMutation } from "../helper";
 import useApiMutation from "../useApiMutation/useApiMutation";
-import { signin, signup } from "../../api/auth";
+import { signin, signout, signup } from "../../api/auth";
 import { UserDispatchContext } from "../../context/UserContext";
 import { useContext } from "react";
 
@@ -8,6 +8,7 @@ const useAuth = () => {
   const setUserDetails = useContext(UserDispatchContext);
   const signinMutation = useApiMutation(signin);
   const signupMutation = useApiMutation(signup);
+  const signoutMutation = useApiMutation(signout);
 
   const mutations = {
     signin: async (obj: any) =>
@@ -17,6 +18,7 @@ const useAuth = () => {
     logout: async () => {
       setUserDetails(null);
       localStorage.clear();
+      processApiMutation(signoutMutation.mutateAsync());
     },
   };
 

@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
 export default (storageKey: string, initialState: any) => {
-  const ref = useRef(initialState);
   const [state, setInternalState] = useState(initialState);
 
   useEffect(() => {
@@ -13,9 +12,12 @@ export default (storageKey: string, initialState: any) => {
   }, []);
 
   const setState = (newState: any) => {
-    ref.current = typeof newState === "function" ? newState(state) : newState;
-    localStorage.setItem(storageKey, JSON.stringify(ref.current || {}));
-    setInternalState(ref.current);
+    const item = JSON.parse(
+      localStorage.getItem(storageKey) || JSON.stringify(initialState)
+    );
+    const current = typeof newState === "function" ? newState(item) : newState;
+    localStorage.setItem(storageKey, JSON.stringify(current));
+    setInternalState(current);
   };
 
   return [state, setState];

@@ -3,7 +3,7 @@ import type { Router } from "express";
 import { FileArray, UploadedFile } from "express-fileupload";
 import { isEmpty as _isEmpty } from "lodash";
 import path from "path";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient, User } from "@prisma/client";
 
 import {
   createPublicUrl,
@@ -27,39 +27,45 @@ import {
   success,
 } from "../../utils";
 
+import { authenticate } from "../../utils/passport";
+
 export default (prisma: PrismaClient, router: Router) => {
-  router.get("/cdn/private/view/files/:file_id_hash", async (req, res) => {
-    const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
-    try {
-      const { params } = req;
-      const { file_id_hash: fileIdHash } = params;
+  router.get(
+    "/cdn/private/view/files/:file_id_hash",
+    authenticate(),
+    async (req, res) => {
+      const { user_id: userId } = req.user as User;
+      try {
+        const { params } = req;
+        const { file_id_hash: fileIdHash } = params;
 
-      if (!fileIdHash) throw badRequest();
+        if (!fileIdHash) throw badRequest();
 
-      if (fileIdHash.length !== 172) throw badRequest();
+        if (fileIdHash.length !== 172) throw badRequest();
 
-      const decrypted = decrypt(fileIdHash, process.env.SECURE_URL_KEY || "");
-      const [fileId, _] = decrypted.split(":");
+        const decrypted = decrypt(fileIdHash, process.env.SECURE_URL_KEY || "");
+        const [fileId, _] = decrypted.split(":");
 
-      const where: Prisma.FileWhereUniqueInput = { file_id: fileId };
+        const where: Prisma.FileWhereUniqueInput = { file_id: fileId };
 
-      const resource = await prisma.file.findUnique({ where });
-      if (!resource) throw notFound();
-      if (resource?.user_id !== userId) throw forbidden();
+        const resource = await prisma.file.findUnique({ where });
+        if (!resource) throw notFound();
+        if (resource?.user_id !== userId) throw forbidden();
 
-      const path = getUploadPath({
-        userId,
-        resourceId: fileId,
-        file: { mimetype: resource.mimetype },
-      });
+        const path = getUploadPath({
+          userId,
+          resourceId: fileId,
+          file: { mimetype: resource.mimetype },
+        });
 
-      res.setHeader("Content-Type", resource.mimetype);
-      res.setHeader("Content-Disposition", `filename=${resource.name}`);
-      return res.sendFile(path);
-    } catch (error) {
-      return res.status(404).send("No such file.");
+        res.setHeader("Content-Type", resource.mimetype);
+        res.setHeader("Content-Disposition", `filename=${resource.name}`);
+        return res.sendFile(path);
+      } catch (error) {
+        return res.status(404).send("No such file.");
+      }
     }
-  });
+  );
 
   router.get("/cdn/public/view/files/:file_id_hash", async (req, res) => {
     try {
@@ -94,8 +100,8 @@ export default (prisma: PrismaClient, router: Router) => {
     }
   });
 
-  router.get("/api/files", async (req, res) => {
-    const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
+  router.get("/api/files", authenticate(), async (req, res) => {
+    const { user_id: userId } = req.user as User;
     try {
       const where: Prisma.FileWhereInput = { user_id: userId };
       const include: Prisma.FileInclude = { tags: true };
@@ -112,8 +118,8 @@ export default (prisma: PrismaClient, router: Router) => {
     }
   });
 
-  router.post("/api/files/upload", async (req, res) => {
-    const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
+  router.post("/api/files/upload", authenticate(), async (req, res) => {
+    const { user_id: userId } = req.user as User;
     try {
       const files = req.files as FileArray;
 
@@ -164,8 +170,8 @@ export default (prisma: PrismaClient, router: Router) => {
     }
   });
 
-  router.patch("/api/files/:file_id", async (req, res) => {
-    const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
+  router.patch("/api/files/:file_id", authenticate(), async (req, res) => {
+    const { user_id: userId } = req.user as User;
     try {
       const { params, body } = req;
       const { file_id: fileId } = params;
@@ -215,8 +221,8 @@ export default (prisma: PrismaClient, router: Router) => {
     }
   });
 
-  router.delete("/api/files/:file_id", async (req, res) => {
-    const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
+  router.delete("/api/files/:file_id", authenticate(), async (req, res) => {
+    const { user_id: userId } = req.user as User;
     try {
       const { file_id: fileId } = req.params;
 
@@ -236,8 +242,8 @@ export default (prisma: PrismaClient, router: Router) => {
     }
   });
 
-  router.post("/api/files/:file_id/link", async (req, res) => {
-    const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
+  router.post("/api/files/:file_id/link", authenticate(), async (req, res) => {
+    const { user_id: userId } = req.user as User;
     try {
       const { params } = req;
       const { file_id: fileId } = params;
@@ -277,34 +283,38 @@ export default (prisma: PrismaClient, router: Router) => {
     }
   });
 
-  router.delete("/api/files/:file_id/link", async (req, res) => {
-    const userId = "972646b0-d56c-409e-9404-783dbcf9c618";
-    try {
-      const { params } = req;
-      const { file_id: fileId } = params;
+  router.delete(
+    "/api/files/:file_id/link",
+    authenticate(),
+    async (req, res) => {
+      const { user_id: userId } = req.user as User;
+      try {
+        const { params } = req;
+        const { file_id: fileId } = params;
 
-      if (!fileId) throw badRequest();
+        if (!fileId) throw badRequest();
 
-      const where: Prisma.FileWhereUniqueInput = { file_id: fileId };
-      const resource = await prisma.file.findUnique({ where });
+        const where: Prisma.FileWhereUniqueInput = { file_id: fileId };
+        const resource = await prisma.file.findUnique({ where });
 
-      if (!resource) throw notFound();
-      if (resource?.user_id !== userId) throw forbidden();
+        if (!resource) throw notFound();
+        if (resource?.user_id !== userId) throw forbidden();
 
-      const data: Prisma.FileUpdateInput = {};
-      const include: Prisma.FileInclude = {};
+        const data: Prisma.FileUpdateInput = {};
+        const include: Prisma.FileInclude = {};
 
-      data["public_url"] = null;
-      include["tags"] = true;
+        data["public_url"] = null;
+        include["tags"] = true;
 
-      const response = await prisma.file.update({ where, data, include });
+        const response = await prisma.file.update({ where, data, include });
 
-      return res
-        .status(200)
-        .send(success(response, "Success deleting public link."));
-    } catch (error) {
-      const { statusCode, ...rest } = errorMessage(error);
-      return res.status(statusCode || 400).send(rest);
+        return res
+          .status(200)
+          .send(success(response, "Success deleting public link."));
+      } catch (error) {
+        const { statusCode, ...rest } = errorMessage(error);
+        return res.status(statusCode || 400).send(rest);
+      }
     }
-  });
+  );
 };

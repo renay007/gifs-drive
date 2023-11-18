@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { FileError, useDropzone } from "react-dropzone";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -68,33 +68,39 @@ const _DropZone = (): JSX.Element => {
     });
   }, [acceptedFiles, fileRejections]);
 
-  const onProgress = (id: string, progress: number) => {
-    setProgressDetails((curr: FileUpload[]) =>
-      curr.map((savedFile) => {
-        if (savedFile.file.id === id) {
-          return {
-            ...savedFile,
-            progress,
-          };
-        }
-        return savedFile;
-      })
-    );
-  };
+  const onProgress = useCallback(
+    (id: string, progress: number) => {
+      setProgressDetails((curr: FileUpload[]) => {
+        return curr.map((savedFile) => {
+          if (savedFile.file.id === id) {
+            return {
+              ...savedFile,
+              progress,
+            };
+          }
+          return savedFile;
+        });
+      });
+    },
+    [setProgressDetails]
+  );
 
-  const onUploadFail = (id: string, error: any) => {
-    setProgressDetails((curr: FileUpload[]) =>
-      curr.map((savedFile) => {
-        if (savedFile.file.id === id) {
-          return {
-            ...savedFile,
-            errors: [error, ...savedFile.errors],
-          };
-        }
-        return savedFile;
-      })
-    );
-  };
+  const onUploadFail = useCallback(
+    (id: string, error: any) => {
+      setProgressDetails((curr: FileUpload[]) =>
+        curr.map((savedFile) => {
+          if (savedFile.file.id === id) {
+            return {
+              ...savedFile,
+              errors: [error, ...savedFile.errors],
+            };
+          }
+          return savedFile;
+        })
+      );
+    },
+    [setProgressDetails]
+  );
 
   return (
     <>

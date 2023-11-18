@@ -2,9 +2,10 @@ import { PrismaClient } from "@prisma/client";
 import type { Router } from "express";
 
 import { errorMessage, success } from "../../utils";
+import { authenticate } from "../../utils/passport";
 
 export default (prisma: PrismaClient, router: Router) => {
-  router.get("/api/tags", async (req, res) => {
+  router.get("/api/tags", authenticate(), async (_, res) => {
     try {
       const tags = await prisma.tag.findMany();
 

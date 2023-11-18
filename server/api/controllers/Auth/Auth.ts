@@ -1,9 +1,10 @@
-import type { Router } from "express";
+import type { CookieOptions, Router } from "express";
 import { isEmpty as _isEmpty } from "lodash";
 import { PrismaClient } from "@prisma/client";
+import jwt from "jsonwebtoken";
 import validator from "validator";
 
-import { encryptPassword, isValidPassword } from "./helper";
+import { encryptPassword, generateToken, isValidPassword } from "./helper";
 import type { SigninInput, SignupInput } from "./types";
 
 import {
@@ -75,6 +76,17 @@ export default (prisma: PrismaClient, router: Router) => {
       });
 
       const { hashed_password, ...rest } = user;
+
+      const token = generateToken(user);
+
+      const secured = process.env.IS_COOKIE_SECURE === "true";
+      res.cookie("jwt", token, {
+        httpOnly: secured,
+        sameSite: secured,
+        signed: secured,
+        secure: secured,
+      });
+
       return res.status(200).send(success(rest, "Successfully registered."));
     } catch (error) {
       const { statusCode, ...rest } = errorMessage(error);
@@ -112,7 +124,27 @@ export default (prisma: PrismaClient, router: Router) => {
 
       const { hashed_password: hashedPassword, ...rest } = user;
 
+      const token = generateToken(user);
+
+      const secured = process.env.IS_COOKIE_SECURE === "true";
+      res.cookie("jwt", token, {
+        httpOnly: secured,
+        sameSite: secured,
+        signed: secured,
+        secure: secured,
+      });
+
       return res.status(200).send(success(rest, "Successfully logged in."));
+    } catch (error) {
+      const { statusCode, ...rest } = errorMessage(error);
+      return res.status(statusCode || 400).send(rest);
+    }
+  });
+
+  router.post("/api/signout", async (_, res) => {
+    try {
+      res.clearCookie("jwt");
+      return res.status(200).send(success(null, "Successfully logged out."));
     } catch (error) {
       const { statusCode, ...rest } = errorMessage(error);
       return res.status(statusCode || 400).send(rest);
